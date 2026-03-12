@@ -1,0 +1,20 @@
+http:
+  routers:
+    auth:
+      rule: "Host(`auth.localhost`)"
+      service: auth
+      entryPoints:
+        - websecure
+
+  services:
+    auth:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:8000"  # для локального dev
+          # или "http://auth-api:8000" если в Docker сети
+
+  middlewares:
+    auth-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
