@@ -22,3 +22,11 @@ providers:
 
 log:
   level: INFO
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "email@example.com"
+      storage: "/acme.json"
+      httpChallenge:
+        entryPoint: web
