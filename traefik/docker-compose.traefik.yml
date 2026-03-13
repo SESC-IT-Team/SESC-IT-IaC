@@ -16,7 +16,11 @@ services:
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
     networks:
       - traefik-net
+      - app-network
 
 networks:
   traefik-net:
     driver: bridge
+  app_network:
+    external: true
+    name: lyceum-auth-backend_app_network
