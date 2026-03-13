@@ -16,7 +16,7 @@ services:
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
     networks:
       - traefik-net
-      - app-network
+      - app_network
 
 networks:
   traefik-net:
