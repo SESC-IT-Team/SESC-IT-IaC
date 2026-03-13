@@ -5,7 +5,8 @@ http:
       service: auth
       entryPoints:
         - websecure
-      tls: {}
+      tls:
+        certResolver: letsencrypt
 
   services:
     auth:
