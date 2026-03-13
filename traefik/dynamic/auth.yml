@@ -11,7 +11,7 @@ http:
     auth:
       loadBalancer:
         servers:
-          - url: {{ expandenv "http://$AUTH_API_URL" }}
+          - url: "http://auth-api:8000"
 
 #          "http://host.docker.internal:8000"  # для локального dev
 #
