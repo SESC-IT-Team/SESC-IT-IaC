@@ -1,7 +1,7 @@
 http:
   routers:
     auth:
-      rule: "Host(`auth.localhost`)"
+      rule: "Host(`sesc-it-team.ru`)"
       service: auth
       entryPoints:
         - websecure
@@ -10,8 +10,11 @@ http:
     auth:
       loadBalancer:
         servers:
-          - url: "http://host.docker.internal:8000"  # для локального dev
-          # или "http://auth-api:8000" если в Docker сети
+          - url: {{ expandenv "http://$AUTH_BACKEND_URL" }}
+
+#          "http://host.docker.internal:8000"  # для локального dev
+#
+#          # или "http://auth-api:8000" если в Docker сети
 
   middlewares:
     auth-redirect:

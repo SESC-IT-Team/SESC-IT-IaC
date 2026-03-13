@@ -11,7 +11,7 @@ entryPoints:
 
 api:
   dashboard: true
-  insecure: true # для локального тестирования (для прода - false)
+  insecure: false # для локального тестирования - true (для прода - false)
 
 providers:
   docker:
