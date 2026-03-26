@@ -1,10 +1,6 @@
-/*
-!/docker-compose*.yml
-!/traefik
-!/traefik/**
-
 .venv/
 traefik/.env
 traefik/acme.json
 rules/
 .idea/
+.env
