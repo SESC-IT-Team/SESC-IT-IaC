@@ -1,9 +1,9 @@
 http:
   routers:
     auth:
-      rule: localhost
+      rule: "Host(`sesc-it-team.ru`)"
 
-       # "Host(`sesc-it-team.ru`)"
+       # localhost
       service: auth
       entryPoints:
         - websecure
@@ -14,7 +14,7 @@ http:
     auth:
       loadBalancer:
         servers:
-          - url: http://host.docker.internal:8000
+          - url: "http://auth-api:8000"
 
          # "http://auth-api:8000"
 
