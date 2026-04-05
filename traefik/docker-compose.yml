@@ -1,4 +1,4 @@
-# version: latest
+#version: latest
 
 services:
   traefik:
@@ -12,8 +12,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./acme.json:/acme.json
       - ./dynamic:/etc/traefik/dynamic:ro
+      - ./acme.json:/acme.json
     networks:
       - traefik-net
       - app_network
