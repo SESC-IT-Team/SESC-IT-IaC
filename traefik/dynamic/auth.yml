@@ -2,8 +2,6 @@ http:
   routers:
     auth:
       rule: "Host(`sesc-it-team.ru`)"
-
-       # localhost
       service: auth
       entryPoints:
         - websecure
@@ -15,12 +13,7 @@ http:
       loadBalancer:
         servers:
           - url: "http://auth-api:8000"
-
-         # "http://auth-api:8000"
-
-#          "http://host.docker.internal:8000"  # для локального dev
-#
-#          или "http://auth-api:8000" если в Docker сети
+          # или "http://auth-api:8000" если Traefik и auth-api в одной Docker-сети
 
   middlewares:
     auth-redirect:
