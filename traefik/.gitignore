@@ -1,0 +1,6 @@
+.idea/
+.venv/
+traefik/.env
+traefik/acme.json
+rules/
+.env
