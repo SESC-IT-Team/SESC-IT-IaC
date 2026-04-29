@@ -1,5 +1,3 @@
-#version: latest
-
 services:
   traefik:
     image: traefik:latest
