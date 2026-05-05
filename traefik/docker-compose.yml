@@ -1,24 +1,20 @@
 services:
   traefik:
-    image: traefik:latest
+    image: traefik:v3.5
     container_name: traefik
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yml:/etc/traefik/traefik.yml:ro
       - ./dynamic:/etc/traefik/dynamic:ro
       - ./acme.json:/acme.json
     networks:
-      - traefik-net
-      - app_network
+      - traefik-public
 
 networks:
-  traefik-net:
-    driver: bridge
-  app_network:
+  traefik-public:
     external: true
-    name: lyceum-auth-backend_app_network
+    name: traefik-public

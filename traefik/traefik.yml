@@ -6,16 +6,18 @@ entryPoints:
         entryPoint:
           to: websecure
           scheme: https
+
   websecure:
     address: ":443"
 
 api:
   dashboard: true
-  insecure: false # для локального тестирования - true (для прода - false)
+  insecure: false
 
 providers:
   docker:
     exposedByDefault: false
+    network: traefik-public
   file:
     directory: /etc/traefik/dynamic
     watch: true

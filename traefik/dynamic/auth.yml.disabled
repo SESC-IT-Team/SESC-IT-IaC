@@ -16,9 +16,3 @@ http:
 
          # "http://host.docker.internal:8000"
          # или "http://auth-api:8000" если Traefik и auth-api в одной Docker-сети
-
-  middlewares:
-    auth-redirect:
-      redirectScheme:
-        scheme: https
-        permanent: true
