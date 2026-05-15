@@ -41,6 +41,14 @@ services:
       - traefik.http.routers.minio-console.tls.certresolver=letsencrypt
       - traefik.http.routers.minio-console.service=minio-console
       - traefik.http.services.minio-console.loadbalancer.server.port=9001
+        
+        - traefik.http.routers.minio-api-http.rule=Host(`s3.sesc-it-team.ru`)
+        - traefik.http.routers.minio-api-http.entrypoints=web
+        - traefik.http.routers.minio-api-http.service=minio-api
+        
+        - traefik.http.routers.minio-console-http.rule=Host(`minio.sesc-it-team.ru`)
+        - traefik.http.routers.minio-console-http.entrypoints=web
+        - traefik.http.routers.minio-console-http.service=minio-console
 
 volumes:
   minio-data:
