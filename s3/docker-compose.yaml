@@ -3,24 +3,64 @@ services:
     image: quay.io/minio/minio:latest
     container_name: minio-server
     command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    restart: unless-stopped
+
     environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-      - MINIO_REGION=${MINIO_REGION}
-      - MINIO_BROWSER_REDIRECT_URL=${MINIO_BROWSER_REDIRECT_URL}
-      - MINIO_SERVER_URL=${MINIO_SERVER_URL}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_REGION: ${MINIO_REGION}
+      MINIO_SERVER_URL: https://s3.sesc-it-team.ru
+      MINIO_BROWSER_REDIRECT_URL: https://sesc-it-team.ru/minio
+
     volumes:
       - minio-data:/data
-    restart: unless-stopped
+
+    expose:
+      - "9000"
+      - "9001"
+
+    networks:
+      - traefik-public
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+
+      - traefik.http.routers.minio-api.rule=Host(`s3.sesc-it-team.ru`)
+      - traefik.http.routers.minio-api.entrypoints=websecure
+      - traefik.http.routers.minio-api.tls=true
+      - traefik.http.routers.minio-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.minio-api.service=minio-api
+      - traefik.http.services.minio-api.loadbalancer.server.port=9000
+
+      - traefik.http.routers.minio-console.rule=Host(`sesc-it-team.ru`) && PathPrefix(`/minio`)
+      - traefik.http.routers.minio-console.entrypoints=websecure
+      - traefik.http.routers.minio-console.tls=true
+      - traefik.http.routers.minio-console.tls.certresolver=letsencrypt
+      - traefik.http.routers.minio-console.service=minio-console
+      - traefik.http.routers.minio-console.middlewares=minio-console-stripprefix,minio-console-slash
+      - traefik.http.services.minio-console.loadbalancer.server.port=9001
+
+      - traefik.http.middlewares.minio-console-slash.redirectregex.regex=^https://sesc-it-team\\.ru/minio$
+      - traefik.http.middlewares.minio-console-slash.redirectregex.replacement=https://sesc-it-team.ru/minio/
+      - traefik.http.middlewares.minio-console-slash.redirectregex.permanent=true
+
+      - traefik.http.middlewares.minio-console-stripprefix.stripprefix.prefixes=/minio
+
+      - traefik.http.routers.minio-api-http.rule=Host(`s3.sesc-it-team.ru`)
+      - traefik.http.routers.minio-api-http.entrypoints=web
+      - traefik.http.routers.minio-api-http.service=minio-api
+
+      - traefik.http.routers.minio-console-http.rule=Host(`sesc-it-team.ru`) && PathPrefix(`/minio`)
+      - traefik.http.routers.minio-console-http.entrypoints=web
+      - traefik.http.routers.minio-console-http.service=minio-console
+      - traefik.http.routers.minio-console-http.middlewares=minio-console-stripprefix,minio-console-slash
 
 volumes:
   minio-data:
     driver: local
 
 networks:
-  default:
-    name: minio-network
-    driver: bridge
+  traefik-public:
+    external: true
+    name: traefik-public
