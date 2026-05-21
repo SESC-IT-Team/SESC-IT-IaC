@@ -1,0 +1,93 @@
+- name: Local Declarative SSH & Keys Sync Setup
+  hosts: localhost
+  connection: local
+  become: yes
+  gather_facts: no
+
+  vars:
+    deploy_key_path: "/root/.ssh/github_deploy_key"
+  github_repo: "git@github.com:SESC-IT-Team/SESC-IT-IaC/ssh-key"
+    
+    repo_dest: /opt/ssh_keys_repo
+    script_dest: /usr/local/bin/sync_ssh_keys.sh
+
+  tasks:
+    - name: Установить git и cron
+      ansible.builtin.apt:
+        name: ["git", "cron"]
+        state: present
+        update_cache: yes
+
+    - name: Создать /root/.ssh
+      ansible.builtin.file:
+        path: /root/.ssh
+        state: directory
+        mode: '0700'
+
+    - name: Гарантировать права на deploy-ключ (декларативно)
+      ansible.builtin.file:
+        path: "{{ deploy_key_path }}"
+        mode: '0600'
+        state: file
+      ignore_errors: yes
+
+    - name: Настроить SSH-клиент для GitHub
+      ansible.builtin.blockinfile:
+        path: /root/.ssh/config
+        block: |
+          Host github.com
+              HostName github.com
+              User git
+              IdentityFile {{ deploy_key_path }}
+              IdentitiesOnly yes
+        create: yes
+        mode: '0600'
+        marker: "# {mark} ANSIBLE MANAGED - GitHub SSH"
+
+    - name: Настроить sshd (ключи + root)
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        validate: "sshd -t -f %s"
+      loop:
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin yes' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+      notify: Перезапустить SSH
+
+    - name: Развернуть скрипт синхронизации
+      ansible.builtin.copy:
+        src: sync_ssh_keys.sh
+        dest: "{{ script_dest }}"
+        mode: '0750'
+
+    - name: Склонировать/обновить репозиторий ключей
+      ansible.builtin.git:
+        repo: "{{ github_repo }}"
+        dest: "{{ repo_dest }}"
+        version: main
+        accept_hostkey: yes
+        update: yes
+
+    - name: Настроить cron (каждые 10 мин)
+      ansible.builtin.cron:
+        name: "sync_ssh_keys"
+        job: "{{ script_dest }}"
+        minute: "*/10"
+        user: root
+
+    - name: Настроить мгновенное обновление при входе
+      ansible.builtin.copy:
+        content: |
+          #!/bin/bash
+          /usr/local/bin/sync_ssh_keys.sh >/dev/null 2>&1
+        dest: /etc/ssh/sshrc
+        mode: '0644'
+
+  handlers:
+    - name: Перезапустить SSH
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
