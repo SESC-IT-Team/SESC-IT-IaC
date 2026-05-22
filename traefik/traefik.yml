@@ -30,5 +30,4 @@ certificatesResolvers:
     acme:
       email: "email@gmail.com"
       storage: "/acme.json"
-      httpChallenge:
-        entryPoint: web
+      tlsChallenge: {}
