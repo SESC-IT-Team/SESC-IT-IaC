@@ -8,18 +8,18 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik.yml.template:/etc/traefik/traefik.yml.template:ro
       - ./traefik.yml:/etc/traefik/traefik.yml
       - ./dynamic:/etc/traefik/dynamic:ro
-      - ./entrypoint.sh:/custom-entrypoint.sh:ro
-      - ${CERT_PATH}:/etc/traefik/certs:ro
+      - traefik-certs:/certs
     networks:
       - traefik-public
     env_file:
       - .env
-    entrypoint: /custom-entrypoint.sh
 
 networks:
   traefik-public:
     external: true
     name: traefik-public
+
+volumes:
+  traefik-certs:
