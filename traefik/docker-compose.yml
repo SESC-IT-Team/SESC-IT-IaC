@@ -1,8 +1,23 @@
 services:
+  cert-generator:
+    image: alpine:3.19
+    container_name: cert-generator
+    environment:
+      - DOMAIN=local.dev
+    volumes:
+      - ./certs:/certs
+      - ./generate-certs.sh:/generate-certs.sh:ro
+    entrypoint: ["/generate-certs.sh"]
+    networks:
+      - traefik-public
+
   traefik:
     image: traefik:v3.6.13
     container_name: traefik
     restart: unless-stopped
+    depends_on:
+      cert-generator:
+        condition: service_completed_successfully
     ports:
       - "80:80"
       - "443:443"
@@ -11,6 +26,7 @@ services:
       - ./traefik.yml:/etc/traefik/traefik.yml:ro
       - ./dynamic:/etc/traefik/dynamic:ro
       - ./acme.json:/acme.json
+      - ./certs:/certs:ro
     networks:
       - traefik-public
 
