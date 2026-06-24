@@ -1,16 +1,4 @@
 services:
-  cert-generator:
-    image: alpine:3.19
-    container_name: cert-generator
-    environment:
-      - DOMAIN=local.dev
-    volumes:
-      - ./certs:/certs
-      - ./generate-certs.sh:/generate-certs.sh:ro
-    entrypoint: ["/generate-certs.sh"]
-    networks:
-      - traefik-public
-
   traefik:
     image: traefik:v3.6.13
     container_name: traefik
