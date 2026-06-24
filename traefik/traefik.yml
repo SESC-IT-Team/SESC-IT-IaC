@@ -26,6 +26,8 @@ log:
   level: INFO
 
 certificatesResolvers:
-  selfsigned:
-    tls:
-      keyType: "EC256"
+  letsencrypt:
+    acme:
+      email: "email@gmail.com"
+      storage: "/acme.json"
+      tlsChallenge: {}
