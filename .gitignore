@@ -1,0 +1,36 @@
+# Development infrastructure data
+Dev-infra/Postgresql/data/
+Dev-infra/RabbitMQ/data/
+Dev-infra/RabbitMQ/logs/
+
+# PostgreSQL data
+Postgresql/data/
+
+# RabbitMQ data
+RabbitMQ/data/
+RabbitMQ/logs/
+
+# S3 data
+s3/data/
+
+# Traefik
+traefik/acme.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

@@ -26,6 +26,12 @@ log:
   level: INFO
 
 certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "${LE_EMAIL}"
+      storage: "/acme.json"
+      tlsChallenge: {}
+
   selfsigned:
     tls:
       stores:
