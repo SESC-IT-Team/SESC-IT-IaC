@@ -1,8 +1,30 @@
 services:
+  certs-init:
+    image: debian:bookworm-slim
+    container_name: traefik-certs-init
+    restart: "no"
+    environment:
+      DOMAIN: ${DOMAIN:-local.dev}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        apt-get update >/dev/null
+        apt-get install -y curl >/dev/null
+        curl -fsSL https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64 -o /usr/local/bin/mkcert
+        chmod +x /usr/local/bin/mkcert
+        mkdir -p /certs
+        /usr/local/bin/mkcert -cert-file /certs/server.crt -key-file /certs/server.key "${DOMAIN}" "*.${DOMAIN}"
+    volumes:
+      - ./certs:/certs
+
   traefik:
     image: traefik:v3.6.13
     container_name: traefik
     restart: unless-stopped
+    depends_on:
+      certs-init:
+        condition: service_completed_successfully
     ports:
       - "80:80"
       - "443:443"
