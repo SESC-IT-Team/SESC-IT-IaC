@@ -30,8 +30,6 @@ services:
       - logging
     depends_on:
       - loki
-    ports:
-      - "127.0.0.1:12345:12345"
 
   prometheus:
     image: prom/prometheus:latest
@@ -58,28 +56,41 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
 
-      # Домен, по которому открывается Grafana.
       GF_SERVER_DOMAIN: ${GRAFANA_DOMAIN}
-      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL}
+      GF_SERVER_ROOT_URL: "https://${GRAFANA_DOMAIN}"
+      GF_SERVER_PROTOCOL: "http"
 
-      # Отключение самостоятельной регистрации.
       GF_USERS_ALLOW_SIGN_UP: "false"
-
-      # Анонимный доступ отключён.
       GF_AUTH_ANONYMOUS_ENABLED: "false"
 
-      # Установка дополнительных плагинов при необходимости.
-      GF_INSTALL_PLUGINS: grafana-lokiexplore-app
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - logging
+      - traefik-public
     depends_on:
       - loki
       - prometheus
-    ports:
-      - "${GRAFANA_PORT:-3001}:3000"
+    labels:
+
+      traefik.enable: "true"
+
+      traefik.http.routers.grafana.rule: "Host(`${GRAFANA_DOMAIN}`)"
+      traefik.http.routers.grafana.entrypoints: "web"
+      traefik.http.routers.grafana.middlewares: "grafana-https-redirect"
+
+      traefik.http.middlewares.grafana-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.middlewares.grafana-https-redirect.redirectscheme.permanent: "true"
+
+      traefik.http.routers.grafana-secure.rule: "Host(`${GRAFANA_DOMAIN}`)"
+      traefik.http.routers.grafana-secure.entrypoints: "websecure"
+      traefik.http.routers.grafana-secure.tls: "true"
+      traefik.http.routers.grafana-secure.tls.certresolver: "${TLS_RESOLVER:-letsencrypt}"
+      traefik.http.routers.grafana-secure.service: "grafana"
+
+      traefik.http.services.grafana.loadbalancer.server.port: "3000"
+      traefik.docker.network: "traefik-public"
 
   node-exporter:
     image: prom/node-exporter:latest
@@ -103,3 +114,6 @@ volumes:
 networks:
   logging:
     name: logging
+  traefik-public:
+    external: true
+    name: traefik-public
