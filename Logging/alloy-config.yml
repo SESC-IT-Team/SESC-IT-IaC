@@ -1,0 +1,69 @@
+// Ищем все контейнеры текущего Docker Engine.
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Фильтруем контейнеры и формируем labels для Loki.
+discovery.relabel "container_logs" {
+  targets = discovery.docker.containers.targets
+
+  // Собираем только контейнеры с label:
+  // logging=alloy
+  rule {
+    source_labels = ["__meta_docker_container_label_logging"]
+    regex         = "alloy"
+    action        = "keep"
+  }
+
+  // Docker Compose service name.
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "compose_service"
+  }
+
+  // Наш собственный service label.
+  rule {
+    source_labels = ["__meta_docker_container_label_service"]
+    target_label  = "service"
+  }
+
+  // Окружение: production, staging и т. д.
+  rule {
+    source_labels = ["__meta_docker_container_label_environment"]
+    target_label  = "environment"
+  }
+
+  // Имя Docker-контейнера.
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    replacement   = "$1"
+    target_label  = "container"
+  }
+
+  rule {
+    target_label = "job"
+    replacement  = "docker"
+  }
+}
+
+// Читаем stdout/stderr Docker-контейнеров.
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.container_logs.output
+  forward_to = [loki.process.container_logs.receiver]
+}
+
+// Обработка Docker JSON logs.
+loki.process "container_logs" {
+  stage.docker {}
+
+  forward_to = [loki.write.local.receiver]
+}
+
+// Отправка логов в Loki.
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
