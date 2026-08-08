@@ -1,0 +1,11 @@
+---
+projects:
+  lyceum-auth-backend:
+    deploy_dir: /opt/apps/Lyceum-Auth-Backend
+    image_env_name: AUTH_BACKEND_IMAGE
+    service_name: auth-api
+
+    health_url: "http://127.0.0.1:8000/health"
+    health_retries: 15
+    health_delay: 4
+
