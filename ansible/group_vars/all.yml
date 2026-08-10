@@ -6,3 +6,12 @@ users:
     nopasswd_sudo: yes
     zsh_config: "user_alex.zsh"  # optional: custom config from files/
 
+  - username: sveta
+    groups: sudo,docker
+    shell: /bin/zsh
+    ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNZMUgwrDFi7rwzThg610TLw0DRlZqMKHkJNHzFwdMi"
+    nopasswd_sudo: yes
+    zsh_config: "user_sveta.zsh"
+
+
+

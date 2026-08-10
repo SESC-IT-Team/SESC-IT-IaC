@@ -1,0 +1,88 @@
+---
+- name: Configure single-node K3s server
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+
+  vars:
+    registry_host: "127.0.0.1:5000"
+    registry_data_dir: "/opt/registry/data"
+    iac_dir: "/opt/apps/SESC-IT-IaC"
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - curl
+          - ca-certificates
+        state: present
+
+    - name: Create Registry data directory
+      ansible.builtin.file:
+        path: "{{ registry_data_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create K3s config directory
+      ansible.builtin.file:
+        path: /etc/rancher/k3s
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Configure local HTTP Registry for K3s containerd
+      ansible.builtin.copy:
+        dest: /etc/rancher/k3s/registries.yaml
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          mirrors:
+            "{{ registry_host }}":
+              endpoint:
+                - "http://{{ registry_host }}"
+
+    - name: Install K3s when absent
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Ensure K3s service is started
+      ansible.builtin.systemd:
+        name: k3s
+        enabled: true
+        state: started
+
+    - name: Install Helm when absent
+      ansible.builtin.shell: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Create kubeconfig directory for deploy user
+      ansible.builtin.file:
+        path: /home/deploy/.kube
+        state: directory
+        owner: deploy
+        group: deploy
+        mode: "0700"
+
+    - name: Copy K3s kubeconfig for deploy user
+      ansible.builtin.copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /home/deploy/.kube/config
+        remote_src: true
+        owner: deploy
+        group: deploy
+        mode: "0600"
+
+    - name: Apply local Registry manifest
+      ansible.builtin.command:
+        cmd: k3s kubectl apply -f {{ iac_dir }}/k3s/registry.yml
+      changed_when: true
