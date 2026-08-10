@@ -4,7 +4,7 @@ Create users with SSH keys via Ansible.
 
 ## Usage
 
-Add your user to `ansible/ssh/users.yml`:
+Add your user to `ansible/group_vars/all.yml`:
 
 ```yaml
 - username: me
@@ -26,5 +26,6 @@ xxx.xxx.xxx.xxx ansible_user=root
 
 2. Run:
 ```bash
-ansible-playbook -i inventory.ini users.yml --ask-pass
+cd ansible
+ansible-playbook -i inventory.ini ssh_users.yml --ask-pass
 ```
