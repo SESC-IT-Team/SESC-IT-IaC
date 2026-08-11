@@ -8,6 +8,12 @@ argocd_chart_version: "7.7.0"
 gitops_repo_url: "https://github.com/SESC-IT-Team/SESC-IT-IaC.git"
 gitops_target_revision: "HEAD"
 
+# ---- cert-manager / LetsEncrypt ------------------------------------------
+# Issues the TLS certificate referenced by the ArgoCD Ingress.
+cert_manager_chart_version: "v1.16.3"
+letsencrypt_email: "it@sesc-it-team.ru"
+letsencrypt_server: "https://acme-v02.api.letsencrypt.org/directory"
+
 # ---- SSH users -----------------------------------------------------------
 users:
   - username: alex

@@ -1,7 +1,0 @@
-.venv/
-traefik/.env
-traefik/acme.json
-traefik/certs/
-rules/
-.idea/
-.env

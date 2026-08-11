@@ -9,6 +9,7 @@
 | Компонент              | Namespace   | Источник (git)                                      | Комментарий                                     |
 |------------------------|-------------|-----------------------------------------------------|-------------------------------------------------|
 | K3s                    | -           | [ansible/roles/k3s_setup](../ansible/roles/k3s_setup) | single-node, ставится через ansible             |
+| cert-manager           | `cert-manager` | [argocd/bootstrap/cluster-issuer.yaml](../argocd/bootstrap/cluster-issuer.yaml) | выпускает TLS-сертификаты LetsEncrypt           |
 | Private registry       | `registry`  | [apps/registry](../apps/registry)                   | helm-chart, управляется ArgoCD                  |
 | ArgoCD                 | `argocd`    | [argocd/values.yaml](../argocd/values.yaml)         | helm-release `argocd/argo-cd`                   |
 | GitOps root app        | `argocd`    | [argocd/bootstrap/root-app.yaml](../argocd/bootstrap/root-app.yaml) | app-of-apps (сканирует `argocd/apps/`) |
@@ -76,8 +77,9 @@ ansible-playbook -i inventories/local.yml playbooks/k3s-server.yml
 3. Устанавливается K3s и Helm.
 4. Копируется kubeconfig в `/home/root/.kube/config`.
 5. Клонируется этот репозиторий в `/opt/apps/SESC-IT-IaC`.
-6. Добавляется helm-репозиторий `argo` и ставится ArgoCD с values из `argocd/values.yaml`.
-7. Применяются `argocd/bootstrap/project.yaml` и `argocd/bootstrap/root-app.yaml` (app-of-apps).
+6. Добавляется helm-репозиторий `argo`, затем ставится **cert-manager** (jetstack) и применяется LetsEncrypt `ClusterIssuer` — это нужно, чтобы Ingress ArgoCD сразу получил настоящий TLS-сертификат.
+7. Ставится ArgoCD с values из `argocd/values.yaml` (Ingress содержит annotation `cert-manager.io/cluster-issuer: letsencrypt-prod`).
+8. Применяются `argocd/bootstrap/project.yaml` и `argocd/bootstrap/root-app.yaml` (app-of-apps).
 
 После этого ArgoCD сам поднимает registry: root-app сканирует `argocd/apps/`, находит `registry.yaml` и разворачивает helm-чарт из `apps/registry/` в namespace `registry`.
 
@@ -109,7 +111,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 kubectl -n argocd delete secret argocd-initial-admin-secret
 ```
 
-TLS по умолчанию — self-signed сертификат от Traefik. В браузере принять исключение, либо установить `mkcert`-корень (см. ниже «TLS»).
+TLS: сертификат от **LetsEncrypt** выпускается автоматически через cert-manager (см. раздел 7). В браузере исключение принимать не нужно — соединение доверенное.
 
 ---
 
@@ -264,24 +266,46 @@ argocd app rollback registry <revision-id>
 
 ---
 
-## 7. TLS для argocd.sesc-it-team.ru (опционально)
+## 7. TLS для argocd.sesc-it-team.ru
 
-По умолчанию Traefik в K3s использует self-signed default cert. Чтобы браузер не ругался:
+TLS выпускается **автоматически** через cert-manager + LetsEncrypt на этапе bootstrap. Конфигурация:
 
-**Вариант A — mkcert (dev/test):**
+- **cert-manager** (helm-release в namespace `cert-manager`, chart `jetstack/cert-manager`) — ставится плейбуком `k3s-server.yml` до установки ArgoCD. Переменная версии: `cert_manager_chart_version` в [ansible/inventories/group_vars/all.yml](../ansible/inventories/group_vars/all.yml).
+- **ClusterIssuer `letsencrypt-prod`** — определён в [argocd/bootstrap/cluster-issuer.yaml](../argocd/bootstrap/cluster-issuer.yaml), применяется ansible-ролью `k3s_setup` через `kubernetes.core.k8s`. Email и ACME-сервер берутся из переменных `letsencrypt_email` / `letsencrypt_server`.
+- **Ingress ArgoCD** в [argocd/values.yaml](../argocd/values.yaml) несёт annotations:
+  - `cert-manager.io/cluster-issuer: letsencrypt-prod`
+  - `acme.cert-manager.io/http01-edit-in-place: "true"`
+  - `tlsSecretName: argocd-server-tls`
+
+Выпуск сертификата можно проверить:
+
+```bash
+kubectl get certificate -n argocd
+kubectl describe certificate argocd-server-tls -n argocd
+kubectl get clusterissuer letsencrypt-prod -o wide
+kubectl get challenges -A
+```
+
+Статус `READY=True` у `Certificate` означает, что Secret `argocd-server-tls` заполнен валидным сертификатом и Traefik отдаёт HTTPS без self-signed-предупреждений.
+
+### Перевыпуск / смена конфигурации
+
+- Поменять email LetsEncrypt или ACME-сервер → отредактировать переменные `letsencrypt_email`/`letsencrypt_server` в [ansible/inventories/group_vars/all.yml](../ansible/inventories/group_vars/all.yml) и синхронно обновить значения в [argocd/bootstrap/cluster-issuer.yaml](../argocd/bootstrap/cluster-issuer.yaml), затем перезапустить плейбук.
+- Для тестирования использовать staging-сервер LetsEncrypt: `https://acme-staging-v02.api.letsencrypt.org/directory` (сертификаты не доверенные, но без rate-limit).
+
+### Альтернатива (dev/test): self-signed или mkcert
+
+Если LetsEncrypt недоступен (например, локальный стендин без публичного DNS), можно вручную положить сертификат в Secret:
 
 ```bash
 mkcert -install
 mkcert argocd.sesc-it-team.ru
-# оба файла (.pem + key) положить в Secret tls-argocd в namespace argocd
 kubectl -n argocd create secret tls argocd-server-tls \
   --cert=argocd.sesc-it-team.ru.pem \
   --key=argocd.sesc-it-team.ru-key.pem
 ```
 
-**Вариант B — Let's Encrypt через cert-manager:**
-
-Поставить cert-manager, выпустить `Certificate`, сослаться на Secret в `server. ingress.tls.secretName`. Это отдельная задача — не входит в текущий bootstrap.
+В этом случае annotation `cert-manager.io/cluster-issuer` с Ingress нужно убрать.
 
 ---
 

@@ -1,0 +1,25 @@
+# LetsEncrypt ClusterIssuer managed by cert-manager.
+# Issues certificates for any Ingress annotated with
+#   cert-manager.io/cluster-issuer: letsencrypt-prod
+#
+# This file is the source-of-truth manifest. For automated bootstrap the
+# ansible role (ansible/roles/k3s_setup/tasks/main.yml) applies an equivalent
+# resource via kubernetes.core.k8s with email/server templated from group_vars
+# (letsencrypt_email, letsencrypt_server). The values below MUST be kept in
+# sync with ansible/inventories/group_vars/all.yml.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # Production ACME server. Switch to the staging URL while testing.
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: it@sesc-it-team.ru
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    solvers:
+      - http01:
+          ingress:
+            class: traefik
+

@@ -17,8 +17,12 @@ server:
     hostname: argocd.sesc-it-team.ru
     tls: true
     https: true
+    tlsSecretName: argocd-server-tls
     annotations:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      # cert-manager issues the tlsSecretName secret via the letsencrypt-prod ClusterIssuer.
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      acme.cert-manager.io/http01-edit-in-place: "true"
 
   # Give ArgoCD time to settle on a single-node k3s.
   startupProbe:
