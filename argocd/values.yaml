@@ -1,0 +1,59 @@
+# Helm values for argo/argo-cd
+# Installed by ansible/roles/k3s_setup/tasks/main.yml
+#
+# Server: ClusterIP + Ingress on k3s embedded Traefik.
+# Domain: argocd.sesc-it-team.ru (var: argocd_domain in ansible/group_vars/all.yml)
+
+global:
+  domain: argocd.sesc-it-team.ru
+
+server:
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: argocd.sesc-it-team.ru
+    tls: true
+    https: true
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+
+  # Give ArgoCD time to settle on a single-node k3s.
+  startupProbe:
+    failureThreshold: 30
+    periodSeconds: 10
+
+configs:
+  cm:
+    url: https://argocd.sesc-it-team.ru
+    # Repository is public, no credentials needed.
+    repositories: |
+      - name: sesc-it-iac
+        url: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
+        type: git
+
+  params:
+    server.insecure: false
+
+# Single-node k3s: be conservative with resources.
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi

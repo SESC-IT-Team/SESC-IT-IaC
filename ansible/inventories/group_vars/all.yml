@@ -1,3 +1,14 @@
+# ---- K3s / ArgoCD bootstrap ----------------------------------------------
+iac_dir: "/opt/apps/SESC-IT-IaC"
+registry_host: "127.0.0.1:5000"
+registry_data_dir: "/opt/registry/data"
+
+argocd_domain: "argocd.sesc-it-team.ru"
+argocd_chart_version: "7.7.0"
+gitops_repo_url: "https://github.com/SESC-IT-Team/SESC-IT-IaC.git"
+gitops_target_revision: "HEAD"
+
+# ---- SSH users -----------------------------------------------------------
 users:
   - username: alex
     groups: sudo,docker
@@ -12,6 +23,4 @@ users:
     ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMNZMUgwrDFi7rwzThg610TLw0DRlZqMKHkJNHzFwdMi"
     nopasswd_sudo: yes
     zsh_config: "user_sveta.zsh"
-
-
-
+    

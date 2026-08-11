@@ -1,0 +1,129 @@
+---
+- name: Create Registry data directory
+  ansible.builtin.file:
+    path: "{{ registry_data_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create K3s config directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure local HTTP Registry for K3s containerd
+  ansible.builtin.copy:
+    dest: /etc/rancher/k3s/registries.yaml
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      mirrors:
+        "{{ registry_host }}":
+          endpoint:
+            - "http://{{ registry_host }}"
+
+- name: Install K3s when absent
+  ansible.builtin.shell: |
+    curl -sfL https://get.k3s.io | sh -
+  args:
+    creates: /usr/local/bin/k3s
+
+- name: Ensure K3s service is started
+  ansible.builtin.systemd:
+    name: k3s
+    enabled: true
+    state: started
+
+- name: Install Helm when absent
+  ansible.builtin.shell: |
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
+
+- name: Create kubeconfig directory for deploy user
+  ansible.builtin.file:
+    path: /home/root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Copy K3s kubeconfig for deploy user
+  ansible.builtin.copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /home/root/.kube/config
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0600"
+
+# ---------------------------------------------------------------------------
+# GitOps source: clone this repo to the server (used for bootstrap manifests)
+# ---------------------------------------------------------------------------
+- name: Ensure IaC directory parent exists
+  ansible.builtin.file:
+    path: "{{ iac_dir | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Sync IaC repo to server
+  ansible.builtin.git:
+    repo: "{{ gitops_repo_url }}"
+    dest: "{{ iac_dir }}"
+    version: "{{ gitops_target_revision }}"
+    force: true
+
+# ---------------------------------------------------------------------------
+# ArgoCD via Helm
+# ---------------------------------------------------------------------------
+- name: Wait for K3s API to be ready
+  ansible.builtin.shell: kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes
+  register: k3s_ready
+  retries: 20
+  delay: 3
+  until: k3s_ready.rc == 0
+  changed_when: false
+
+- name: Add ArgoCD helm repository
+  kubernetes.core.helm_repository:
+    name: argo
+    repo_url: https://argoproj.github.io/argo-helm
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+
+- name: Install or upgrade ArgoCD via Helm
+  kubernetes.core.helm:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    name: argocd
+    chart_ref: argo/argo-cd
+    chart_version: "{{ argocd_chart_version }}"
+    release_namespace: argocd
+    create_namespace: true
+    values_files:
+      - "{{ iac_dir }}/argocd/values.yaml"
+    wait: true
+    wait_timeout: 10m
+    atomic: false
+    update_repo_cache: true
+
+# ---------------------------------------------------------------------------
+# App-of-apps bootstrap: project + root Application + child Applications
+# ---------------------------------------------------------------------------
+- name: Apply ArgoCD AppProject
+  ansible.builtin.shell: >
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+    apply -f {{ iac_dir }}/argocd/bootstrap/project.yaml
+  changed_when: false
+
+- name: Apply ArgoCD Applications (root app-of-apps)
+  ansible.builtin.shell: >
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+    apply -f {{ iac_dir }}/argocd/bootstrap/root-app.yaml
+  changed_when: false
+

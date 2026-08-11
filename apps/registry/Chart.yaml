@@ -1,0 +1,8 @@
+apiVersion: v2
+name: registry
+description: Private Docker registry on k3s (hostNetwork + hostPort 5000).
+type: application
+version: 0.1.0
+appVersion: "3"
+maintainers:
+  - name: SESC-IT

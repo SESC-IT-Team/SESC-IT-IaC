@@ -1,0 +1,27 @@
+# ArgoCD Application: private Docker registry.
+# Source: apps/registry/ (helm chart in this repo).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: registry
+  namespace: argocd
+  annotations:
+    # Hint for the app-of-apps: which chart path to render.
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
+    targetRevision: HEAD
+    path: apps/registry
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: registry
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

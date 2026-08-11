@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: registry
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- end }}
+      containers:
+        - name: registry
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.ports.containerPort }}
+              hostPort: {{ .Values.ports.hostPort }}
+          env:
+            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+              value: {{ .Values.storage.rootDirectory | quote }}
+            - name: REGISTRY_STORAGE_DELETE_ENABLED
+              value: {{ .Values.storage.deleteEnabled | quote }}
+          volumeMounts:
+            - name: registry-data
+              mountPath: {{ .Values.storage.rootDirectory }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: registry-data
+          hostPath:
+            path: {{ .Values.storage.hostPath }}
+            type: {{ .Values.storage.hostPathType }}

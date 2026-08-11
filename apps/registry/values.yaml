@@ -1,0 +1,32 @@
+# Default values for the private Docker registry.
+# Used by ArgoCD Application argocd/apps/registry.yaml.
+image:
+  repository: registry
+  tag: "3"
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+# Bind on the host so containerd (registries.yaml -> 127.0.0.1:5000) can pull.
+hostNetwork: true
+dnsPolicy: ClusterFirstWithHostNet
+
+service:
+  port: 5000
+
+ports:
+  containerPort: 5000
+  hostPort: 5000
+
+storage:
+  rootDirectory: /var/lib/registry
+  deleteEnabled: true
+  hostPath: /opt/registry/data
+  hostPathType: DirectoryOrCreate
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi

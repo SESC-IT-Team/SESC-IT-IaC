@@ -1,0 +1,24 @@
+# Root Application: app-of-apps.
+# Scans argocd/apps/*.yaml in this repo and creates child Applications automatically.
+# After this is applied once (by ansible), every new file in argocd/apps/ becomes
+# a new managed Application with zero further manual kubectl.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
+    targetRevision: HEAD
+    path: argocd/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

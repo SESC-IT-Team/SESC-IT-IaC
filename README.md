@@ -1,31 +1,53 @@
-# SSH User Management
+# SESC-IT-IaC
 
-Create users with SSH keys via Ansible.
+Инфраструктура SESC-IT как код: K3s, приватный Docker-registry, ArgoCD (GitOps) и сопутствующие сервисы (Logging, S3, RabbitMQ, PostgreSQL).
 
-## Usage
+## Быстрый старт
 
-Add your user to `ansible/group_vars/all.yml`:
-
-```yaml
-- username: me
-  groups: sudo,docker
-  shell: /bin/zsh
-  ssh_key: "your public key (~/.ssh/id_ed25519.pub or ~/.ssh/id_rsa.pub)"
-  nopasswd_sudo: yes
-```
-
-## Run playbook
-
-Commit and push your changes, then ask admin to run the playbook, or run it yourself.
-
-1. Add your server IP to `ansible/inventory.ini`:
-```ini
-[all]
-xxx.xxx.xxx.xxx ansible_user=root
-```
-
-2. Run:
 ```bash
 cd ansible
-ansible-playbook -i inventory.ini ssh_users.yml --ask-pass
+ansible-galaxy install -r requirements.yml
+ansible-playbook -i inventories/local.yml playbooks/k3s-server.yml
 ```
+
+Подробная инструкция — в [docs/ARGOCD.md](docs/ARGOCD.md).
+
+## Что входит
+
+| Компонент            | Где                                    | Управляется через                |
+|----------------------|----------------------------------------|----------------------------------|
+| K3s single-node      | [ansible/roles/k3s_setup](ansible/roles/k3s_setup) | ansible                          |
+| Private registry     | [apps/registry](apps/registry)         | ArgoCD (helm chart)              |
+| ArgoCD               | [argocd/values.yaml](argocd/values.yaml) | ansible (helm install)           |
+| GitOps applications  | [argocd/apps/](argocd/apps)            | ArgoCD (app-of-apps)             |
+| SSH users            | [ansible/roles/ssh_users](ansible/roles/ssh_users) | ansible                          |
+| Logging (Loki/Grafana) | [Logging/](Logging)                  | docker-compose                   |
+| Traefik (внешний)    | [traefik/](traefik)                    | docker-compose (выводится из эксплуатации) |
+
+## Структура
+
+```
+ansible/      # provisioning: k3s, helm, ArgoCD bootstrap, ssh users
+apps/         # helm charts под управлением ArgoCD
+argocd/       # helm values ArgoCD + GitOps-манифесты (Application/AppProject)
+docs/         # документация
+Logging/      # observability stack (docker-compose)
+traefik/      # внешний reverse-proxy (выводится из эксплуатации)
+```
+
+## GitOps: добавить приложение
+
+1. Скопировать `apps/registry/` → `apps/<myapp>/`.
+2. Скопировать `argocd/apps/registry.yaml` → `argocd/apps/<myapp>.yaml`.
+3. `git commit && git push` — ArgoCD подхватит автоматически.
+
+Полное руководство — в [docs/ARGOCD.md](docs/ARGOCD.md).
+
+## Доступы
+
+- ArgoCD UI: `https://argocd.sesc-it-team.ru` (пароль — см. [docs/ARGOCD.md](docs/ARGOCD.md#3-доступ-к-ui-argocd))
+- Registry: `212.113.98.188:5000` (insecure, без TLS)
+
+## SSH-пользователи
+
+Добавление новых пользователей — через [ansible/group_vars/all.yml](ansible/group_vars/all.yml) и роль `ssh_users`.
