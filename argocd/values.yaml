@@ -19,7 +19,10 @@ server:
     https: true
     tlsSecretName: argocd-server-tls
     annotations:
-      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      # Bind the router to BOTH `web` (HTTP/80) and `websecure` (HTTPS/443).
+      # cert-manager's HTTP-01 challenge from Let's Encrypt arrives on port 80 and must
+      # receive a 200 — if only `websecure` is listed, the challenge gets a 404 and hangs.
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
       # cert-manager issues the tlsSecretName secret via the letsencrypt-prod ClusterIssuer.
       cert-manager.io/cluster-issuer: letsencrypt-prod
       acme.cert-manager.io/http01-edit-in-place: "true"
