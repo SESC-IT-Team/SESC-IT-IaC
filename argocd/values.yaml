@@ -16,7 +16,6 @@ server:
     ingressClassName: traefik
     hostname: argocd.sesc-it-team.ru
     tls: true
-    https: true
     tlsSecretName: argocd-server-tls
     annotations:
       # Bind the router to BOTH `web` (HTTP/80) and `websecure` (HTTPS/443).
@@ -42,7 +41,9 @@ configs:
         type: git
 
   params:
-    server.insecure: false
+    # Terminate TLS at Traefik (the Ingress serves the letsencrypt cert from
+    # argocd-server-tls). ArgoCD itself speaks plain HTTP behind the Ingress.
+    server.insecure: true
 
 # Single-node k3s: be conservative with resources.
 controller:
