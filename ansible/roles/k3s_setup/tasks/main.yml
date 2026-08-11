@@ -45,6 +45,32 @@
   args:
     creates: /usr/local/bin/helm
 
+- name: Install kubernetes Python library via apt (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: python3-kubernetes
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Install kubernetes Python library via yum (RedHat family)
+  ansible.builtin.yum:
+    name: python3-kubernetes
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Detect if kubernetes Python library is importable
+  ansible.builtin.command: python3 -c "import kubernetes"
+  register: kubernetes_py_check
+  changed_when: false
+  failed_when: false
+
+- name: Fallback - install kubernetes via pip (non-apt-managed OS)
+  ansible.builtin.pip:
+    name: kubernetes
+    state: present
+    extra_args: --break-system-packages
+  when: kubernetes_py_check.rc != 0
+
 - name: Create kubeconfig directory for deploy user
   ansible.builtin.file:
     path: /home/root/.kube
@@ -176,6 +202,39 @@
   environment:
     GODEBUG: http2client=0
 
+- name: Re-check K3s API readiness before ArgoCD install
+  ansible.builtin.shell: kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes
+  register: k3s_ready_argocd
+  retries: 30
+  delay: 5
+  until: k3s_ready_argocd.rc == 0
+  changed_when: false
+
+- name: Find Helm release secrets for argocd
+  kubernetes.core.k8s_info:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    api_version: v1
+    kind: Secret
+    namespace: argocd
+    label_selectors:
+      - owner=helm
+      - name=argocd
+  register: helm_argocd_secrets
+  failed_when: false
+
+- name: Remove stuck Helm release secrets for argocd (anything not in 'deployed' status)
+  kubernetes.core.k8s:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    api_version: v1
+    kind: Secret
+    namespace: argocd
+    name: "{{ item.metadata.name }}"
+    state: absent
+  loop: "{{ helm_argocd_secrets.resources | default([]) }}"
+  when: (item.metadata.labels.status | default('')) != 'deployed'
+  loop_control:
+    label: "{{ item.metadata.name }} [{{ item.metadata.labels.status | default('?') }}]"
+
 - name: Install or upgrade ArgoCD via Helm
   kubernetes.core.helm:
     kubeconfig: /etc/rancher/k3s/k3s.yaml
@@ -190,6 +249,10 @@
     wait_timeout: 10m
     atomic: false
     update_repo_cache: true
+  register: argocd_helm
+  retries: 5
+  delay: 30
+  until: argocd_helm is not failed
   environment:
     GODEBUG: http2client=0
 
