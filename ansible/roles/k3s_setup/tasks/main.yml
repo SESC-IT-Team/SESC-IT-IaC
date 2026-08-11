@@ -111,6 +111,8 @@
     wait_timeout: 10m
     atomic: false
     update_repo_cache: true
+  environment:
+    GODEBUG: http2client=0
 
 # ---------------------------------------------------------------------------
 # App-of-apps bootstrap: project + root Application + child Applications
