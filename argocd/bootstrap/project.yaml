@@ -8,6 +8,7 @@ spec:
   sourceRepos:
     - https://github.com/SESC-IT-Team/SESC-IT-IaC.git
     - https://helm.releases.hashicorp.com
+    - https://github.com/hashicorp/vault-helm.git
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc

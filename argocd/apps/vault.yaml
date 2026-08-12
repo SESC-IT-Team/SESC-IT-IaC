@@ -5,26 +5,19 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-2"
+
 spec:
   project: default
 
-  source:
-    repoURL: https://helm.releases.hashicorp.com
-    chart: vault
-    targetRevision: "*"
-    helm:
-      releaseName: vault
-      valueFiles:
-        - $values/apps/vault/values.yaml
-
   sources:
-    - repoURL: https://helm.releases.hashicorp.com
-      chart: vault
-      targetRevision: "*"
+    - repoURL: https://github.com/hashicorp/vault-helm.git
+      targetRevision: v0.33.0
+      path: .
       helm:
         releaseName: vault
         valueFiles:
           - $values/apps/vault/values.yaml
+
     - repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
       targetRevision: HEAD
       ref: values
