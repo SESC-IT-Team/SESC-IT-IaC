@@ -7,6 +7,7 @@ spec:
   description: Default SESC-IT project (all apps managed by GitOps).
   sourceRepos:
     - https://github.com/SESC-IT-Team/SESC-IT-IaC.git
+    - https://helm.releases.hashicorp.com
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
