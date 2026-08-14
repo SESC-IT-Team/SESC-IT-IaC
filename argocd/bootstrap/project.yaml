@@ -29,6 +29,9 @@ spec:
     - group: admissionregistration.k8s.io
       kind: ValidatingWebhookConfiguration
 
+    - group: external-secrets.io
+      kind: ClusterSecretStore
+
   namespaceResourceWhitelist:
     - group: "*"
       kind: "*"
