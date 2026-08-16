@@ -2,8 +2,26 @@
 all:
   hosts:
     server:
-      ansible_host: 212.113.98.188
-      ansible_user: root
-      ansible_password: Xfa7g58a7717
+      ansible_host: >-
+        {{ lookup(
+          'community.hashi_vault.vault_kv2_get',
+          'bootstrap/server',
+          engine_mount_point='kv'
+        ).secret.ansible_host }}
+
+      ansible_user: >-
+        {{ lookup(
+          'community.hashi_vault.vault_kv2_get',
+          'bootstrap/server',
+          engine_mount_point='kv'
+        ).secret.ansible_user }}
+
+      ansible_password: >-
+        {{ lookup(
+          'community.hashi_vault.vault_kv2_get',
+          'bootstrap/server',
+          engine_mount_point='kv'
+        ).secret.ansible_password }}
+
       ansible_connection: ssh
       ansible_python_interpreter: /usr/bin/python3

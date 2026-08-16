@@ -3,3 +3,4 @@ collections:
   - name: community.docker
   - name: kubernetes.core
     version: "5.0.0"
+  - name: community.hashi_vault
