@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentik-worker
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "authentik.labels" . | nindent 4 }}
+    component: worker
+spec:
+  replicas: {{ .Values.authentik.workerReplicas }}
+  selector:
+    matchLabels:
+      app: authentik-worker
+  template:
+    metadata:
+      labels:
+        app: authentik-worker
+        {{- include "authentik.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: authentik-worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - ak
+            - worker
+
+          env:
+            - name: AUTHENTIK_REDIS__HOST
+              value: authentik-redis
+
+            - name: AUTHENTIK_POSTGRESQL__HOST
+              value: authentik-postgres
+
+            - name: AUTHENTIK_POSTGRESQL__PORT
+              value: "5432"
+
+            - name: AUTHENTIK_POSTGRESQL__NAME
+              value: {{ .Values.postgres.database | quote }}
+
+            - name: AUTHENTIK_POSTGRESQL__USER
+              value: {{ .Values.postgres.user | quote }}
+
+            - name: AUTHENTIK_ERROR_REPORTING__ENABLED
+              value: {{ .Values.authentik.errorReportingEnabled | quote }}
+
+          envFrom:
+            - secretRef:
+                name: authentik-secrets
+
+          resources:
+            {{- toYaml .Values.authentik.resources.worker | nindent 12 }}

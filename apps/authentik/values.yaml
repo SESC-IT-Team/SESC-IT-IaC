@@ -1,0 +1,40 @@
+namespace: authentik
+
+image:
+  repository: ghcr.io/goauthentik/server
+  tag: "2026.5.3"
+  pullPolicy: IfNotPresent
+
+host: auth.sesc-it-team.ru
+
+postgres:
+  image: postgres:16-alpine
+  database: authentik
+  user: authentik
+  storage:
+    size: 5Gi
+    storageClass: local-path
+
+redis:
+  image: redis:7-alpine
+
+authentik:
+  serverReplicas: 1
+  workerReplicas: 1
+
+  errorReportingEnabled: "true"
+
+  resources:
+    server:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 768Mi
+
+    worker:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 768Mi

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentik-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "authentik.labels" . | nindent 4 }}
+    component: server
+spec:
+  replicas: {{ .Values.authentik.serverReplicas }}
+  selector:
+    matchLabels:
+      app: authentik-server
+  template:
+    metadata:
+      labels:
+        app: authentik-server
+        {{- include "authentik.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: authentik-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - ak
+            - server
+          ports:
+            - name: http
+              containerPort: 9000
+
+          env:
+            - name: AUTHENTIK_REDIS__HOST
+              value: authentik-redis
+
+            - name: AUTHENTIK_POSTGRESQL__HOST
+              value: authentik-postgres
+
+            - name: AUTHENTIK_POSTGRESQL__PORT
+              value: "5432"
+
+            - name: AUTHENTIK_POSTGRESQL__NAME
+              value: {{ .Values.postgres.database | quote }}
+
+            - name: AUTHENTIK_POSTGRESQL__USER
+              value: {{ .Values.postgres.user | quote }}
+
+            - name: AUTHENTIK_ERROR_REPORTING__ENABLED
+              value: {{ .Values.authentik.errorReportingEnabled | quote }}
+
+          envFrom:
+            - secretRef:
+                name: authentik-secrets
+
+          readinessProbe:
+            httpGet:
+              path: /-/health/live/
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+
+          livenessProbe:
+            httpGet:
+              path: /-/health/live/
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+
+          resources:
+            {{- toYaml .Values.authentik.resources.server | nindent 12 }}
