@@ -1,7 +1,6 @@
 ---
 - name: Configure single-node K3s server + Registry + ArgoCD (GitOps bootstrap)
   hosts: server
-  connection: local
   become: true
   gather_facts: true
 
