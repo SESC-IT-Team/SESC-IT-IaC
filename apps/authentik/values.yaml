@@ -22,6 +22,11 @@ authentik:
   serverReplicas: 1
   workerReplicas: 1
 
+global:
+  envFrom:
+    - secretRef:
+        name: authentik-secrets
+
   errorReportingEnabled: "true"
 
   resources:
