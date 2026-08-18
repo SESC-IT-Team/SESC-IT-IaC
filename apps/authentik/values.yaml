@@ -21,6 +21,7 @@ redis:
 authentik:
   serverReplicas: 1
   workerReplicas: 1
+  errorReportingEnabled: false
   resources:
     server:
       requests:
@@ -39,3 +40,4 @@ global:
   envFrom:
     - secretRef:
         name: authentik-secrets
+

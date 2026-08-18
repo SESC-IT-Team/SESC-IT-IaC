@@ -1,0 +1,394 @@
+---
+# Source: authentik/templates/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: authentik
+  labels:
+    app.kubernetes.io/name: authentik
+---
+# Source: authentik/templates/postgres.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-postgres
+  namespace: authentik
+spec:
+  selector:
+    app: authentik-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+# Source: authentik/templates/redis.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-redis
+  namespace: authentik
+spec:
+  selector:
+    app: authentik-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+---
+# Source: authentik/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-server
+  namespace: authentik
+spec:
+  type: ClusterIP
+  selector:
+    app: authentik-server
+  ports:
+    - name: http
+      port: 9000
+      targetPort: http
+---
+# Source: authentik/templates/authentik-server.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentik-server
+  namespace: authentik
+  labels:
+    app.kubernetes.io/name: authentik
+    app.kubernetes.io/instance: authentik
+    app.kubernetes.io/managed-by: Helm
+    component: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentik-server
+  template:
+    metadata:
+      labels:
+        app: authentik-server
+        app.kubernetes.io/name: authentik
+        app.kubernetes.io/instance: authentik
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      containers:
+        - name: authentik-server
+          image: "ghcr.io/goauthentik/server:2026.5.3"
+          imagePullPolicy: IfNotPresent
+          command:
+            - ak
+            - server
+          ports:
+            - name: http
+              containerPort: 9000
+
+          env:
+            - name: AUTHENTIK_REDIS__HOST
+              value: authentik-redis
+
+            - name: AUTHENTIK_POSTGRESQL__HOST
+              value: authentik-postgres
+
+            - name: AUTHENTIK_POSTGRESQL__PORT
+              value: "5432"
+
+            - name: AUTHENTIK_POSTGRESQL__NAME
+              value: "authentik"
+
+            - name: AUTHENTIK_POSTGRESQL__USER
+              value: "authentik"
+
+            - name: AUTHENTIK_ERROR_REPORTING__ENABLED
+              value: 
+
+          envFrom:
+            - secretRef:
+                name: authentik-secrets
+
+          readinessProbe:
+            httpGet:
+              path: /-/health/live/
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+
+          livenessProbe:
+            httpGet:
+              path: /-/health/live/
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+
+          resources:
+            limits:
+              memory: 768Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+---
+# Source: authentik/templates/authentik-worker.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentik-worker
+  namespace: authentik
+  labels:
+    app.kubernetes.io/name: authentik
+    app.kubernetes.io/instance: authentik
+    app.kubernetes.io/managed-by: Helm
+    component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentik-worker
+  template:
+    metadata:
+      labels:
+        app: authentik-worker
+        app.kubernetes.io/name: authentik
+        app.kubernetes.io/instance: authentik
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      containers:
+        - name: authentik-worker
+          image: "ghcr.io/goauthentik/server:2026.5.3"
+          imagePullPolicy: IfNotPresent
+          command:
+            - ak
+            - worker
+
+          env:
+            - name: AUTHENTIK_REDIS__HOST
+              value: authentik-redis
+
+            - name: AUTHENTIK_POSTGRESQL__HOST
+              value: authentik-postgres
+
+            - name: AUTHENTIK_POSTGRESQL__PORT
+              value: "5432"
+
+            - name: AUTHENTIK_POSTGRESQL__NAME
+              value: "authentik"
+
+            - name: AUTHENTIK_POSTGRESQL__USER
+              value: "authentik"
+
+            - name: AUTHENTIK_ERROR_REPORTING__ENABLED
+              value: 
+
+          envFrom:
+            - secretRef:
+                name: authentik-secrets
+
+          resources:
+            limits:
+              memory: 768Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+---
+# Source: authentik/templates/redis.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentik-redis
+  namespace: authentik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentik-redis
+  template:
+    metadata:
+      labels:
+        app: authentik-redis
+    spec:
+      containers:
+        - name: redis
+          image: "redis:7-alpine"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 6379
+              name: redis
+          args:
+            - redis-server
+            - --save
+            - "60"
+            - "1"
+---
+# Source: authentik/templates/postgres.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: authentik-postgres
+  namespace: authentik
+spec:
+  serviceName: authentik-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentik-postgres
+  template:
+    metadata:
+      labels:
+        app: authentik-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: "postgres:16-alpine"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: "authentik"
+            - name: POSTGRES_USER
+              value: "authentik"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: authentik-secrets
+                  key: PG_PASS
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: "local-path"
+        resources:
+          requests:
+            storage: "5Gi"
+---
+# Source: authentik/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: authentik
+  namespace: authentik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - "auth.sesc-it-team.ru"
+      secretName: authentik-tls
+  rules:
+    - host: "auth.sesc-it-team.ru"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: authentik-server
+                port:
+                  number: 9000
+---
+# Source: authentik/templates/external-secret.yaml
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: authentik-secrets
+  namespace: authentik
+spec:
+  refreshInterval: 1h
+
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+
+  target:
+    name: authentik-secrets
+    creationPolicy: Owner
+
+  data:
+    - secretKey: PG_PASS
+      remoteRef:
+        key: apps/authentik
+        property: PG_PASS
+
+    - secretKey: AUTHENTIK_POSTGRESQL__PASSWORD
+      remoteRef:
+        key: apps/authentik
+        property: PG_PASS
+
+    - secretKey: AUTHENTIK_SECRET_KEY
+      remoteRef:
+        key: apps/authentik
+        property: AUTHENTIK_SECRET_KEY
+
+    - secretKey: AUTHENTIK_ADMIN_EMAIL
+      remoteRef:
+        key: apps/authentik
+        property: AUTHENTIK_ADMIN_EMAIL
+
+    - secretKey: AUTHENTIK_ADMIN_PASSWORD
+      remoteRef:
+        key: apps/authentik
+        property: AUTHENTIK_ADMIN_PASSWORD
+
+    - secretKey: SPRAVKI_CLIENT_ID
+      remoteRef:
+        key: apps/authentik
+        property: SPRAVKI_CLIENT_ID
+
+    - secretKey: SPRAVKI_CLIENT_SECRET
+      remoteRef:
+        key: apps/authentik
+        property: SPRAVKI_CLIENT_SECRET
+
+    - secretKey: SA_SPRAVKI_APP_PASSWORD
+      remoteRef:
+        key: apps/authentik
+        property: SA_SPRAVKI_APP_PASSWORD
+
+    - secretKey: TECHNICAL_SUPPORT_CLIENT_ID
+      remoteRef:
+        key: apps/authentik
+        property: TECHNICAL_SUPPORT_CLIENT_ID
+
+    - secretKey: TECHNICAL_SUPPORT_CLIENT_SECRET
+      remoteRef:
+        key: apps/authentik
+        property: TECHNICAL_SUPPORT_CLIENT_SECRET
+
+    - secretKey: SA_TECHNICAL_SUPPORT_APP_PASSWORD
+      remoteRef:
+        key: apps/authentik
+        property: SA_TECHNICAL_SUPPORT_APP_PASSWORD
+
+    - secretKey: AUTH_ADMIN_APP_CLIENT_ID
+      remoteRef:
+        key: apps/authentik
+        property: AUTH_ADMIN_APP_CLIENT_ID
+
+    - secretKey: AUTH_ADMIN_APP_CLIENT_SECRET
+      remoteRef:
+        key: apps/authentik
+        property: AUTH_ADMIN_APP_CLIENT_SECRET
+
+    - secretKey: SA_AUTH_ADMIN_APP_APP_PASSWORD
+      remoteRef:
+        key: apps/authentik
+        property: SA_AUTH_ADMIN_APP_APP_PASSWORD
+
+    - secretKey: SA_AUTH_ADMIN_APP_API_TOKEN
+      remoteRef:
+        key: apps/authentik
+        property: SA_AUTH_ADMIN_APP_API_TOKEN
