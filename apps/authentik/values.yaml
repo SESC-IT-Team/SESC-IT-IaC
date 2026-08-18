@@ -21,14 +21,6 @@ redis:
 authentik:
   serverReplicas: 1
   workerReplicas: 1
-
-global:
-  envFrom:
-    - secretRef:
-        name: authentik-secrets
-
-  errorReportingEnabled: "true"
-
   resources:
     server:
       requests:
@@ -36,10 +28,15 @@ global:
         memory: 256Mi
       limits:
         memory: 768Mi
-
     worker:
       requests:
         cpu: 100m
         memory: 256Mi
       limits:
         memory: 768Mi
+
+global:
+  envFrom:
+    - secretRef:
+        name: authentik-secrets
+  errorReportingEnabled: "true"
