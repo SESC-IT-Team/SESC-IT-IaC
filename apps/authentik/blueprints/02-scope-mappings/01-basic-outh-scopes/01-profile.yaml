@@ -1,0 +1,13 @@
+version: 1
+metadata:
+  name: "Custom Profile Scope"
+entries:
+  - identifiers:
+      name: "custom-profile-mapping"
+    model: authentik_providers_oauth2.scopemapping
+    attrs:
+      scope_name: "profile"
+      description: "Доступ к Вашему профилю"
+      managed: null
+      expression: |
+        return {"name": request.user.name, "given_name": request.user.name, "preferred_name": request.user.name, "nickname": request.user.username}

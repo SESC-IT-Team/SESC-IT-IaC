@@ -1,0 +1,47 @@
+version: 1
+metadata:
+  name: "Technical Support App"
+  context:
+    labels:
+      blueprint_v1_v1_bootstrap: "true" 
+entries:
+  - identifiers:
+      name: "technical-support-provider"
+    model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      authorization_flow: !Find [authentik_flows.flow, [slug, custom-inner-apps-auth-flow]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+      client_type: "confidential"
+      
+      client_id: !Env TECHNICAL_SUPPORT_CLIENT_ID
+      client_secret: !Env TECHNICAL_SUPPORT_CLIENT_SECRET
+      
+      sub_mode: "user_uuid"
+      issuer_mode: "per_provider"
+
+      signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
+      
+      grant_types:
+        - "authorization_code"
+        - "refresh_token"
+
+      redirect_uris: 
+        - url: !Env TECHNICAL_SUPPORT_REDIRECT_URI
+          matching_mode: "strict" 
+
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "openid"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "custom-offline_access-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "custom-profile-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "technical_support-orders-create-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "technical_support-orders-get-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "technical_support-orders-set_status-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "technical_support-orders-set_worker-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "technical_support-orders-set_department-mapping"]]
+
+  - identifiers:
+      slug: "technical-support-app"
+    model: authentik_core.application
+    attrs:
+      name: "Сервис Технической Поддержки СУНЦ УрФУ"
+      provider: !Find [authentik_providers_oauth2.oauth2provider, [name, "technical-support-provider"]]

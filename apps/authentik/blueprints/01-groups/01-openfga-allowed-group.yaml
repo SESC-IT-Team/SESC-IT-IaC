@@ -1,0 +1,9 @@
+version: 1
+metadata:
+  name: "OpenFGA Group"
+entries:
+  - identifiers:
+      name: "openfga-allowed"
+    model: authentik_core.group
+    attrs:
+      is_superuser: false

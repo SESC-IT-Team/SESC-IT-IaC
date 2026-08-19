@@ -17,6 +17,10 @@ spec:
         app: authentik-worker
         {{- include "authentik.labels" . | nindent 8 }}
     spec:
+      volumes:
+        - name: blueprints
+          configMap:
+            name: authentik-blueprints
       containers:
         - name: authentik-worker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -47,6 +51,11 @@ spec:
           envFrom:
             - secretRef:
                 name: authentik-secrets
+
+          volumeMounts:
+            - name: blueprints
+              mountPath: /blueprints/mounted/authentik-blueprints
+              readOnly: true
 
           resources:
             {{- toYaml .Values.authentik.resources.worker | nindent 12 }}

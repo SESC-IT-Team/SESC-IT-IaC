@@ -1,0 +1,13 @@
+version: 1
+metadata:
+  name: "Set status of all orders in Technical Support service Scope"
+entries:
+  - identifiers:
+      name: "technical_support-orders-set_status-mapping"
+    model: authentik_providers_oauth2.scopemapping
+    attrs:
+      scope_name: "technical_support:orders:set_status"
+      description: "Изменение статуса всех доступных Вам заявок от Вашего лица"
+      managed: null
+      expression: |
+        return {}

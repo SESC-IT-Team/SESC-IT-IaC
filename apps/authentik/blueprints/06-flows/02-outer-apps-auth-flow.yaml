@@ -1,0 +1,35 @@
+version: 1
+metadata:
+  name: "Outer Applications Authorization and Consent Flow"
+  context:
+    labels:
+      blueprint_v1_v1_bootstrap: "true"
+entries:
+  # 1. Создание кастомной стадии согласия (Consent Stage)
+  - identifiers:
+      name: "custom-explicit-consent-stage"
+    model: authentik_stages_consent.consentstage
+    attrs:
+      # Заставляет всегда показывать окно согласия, даже если пользователь уже давал его ранее
+      mode: "always_require"
+
+  # 2. Создание кастомного Потока авторизации (Authorization Flow)
+  - identifiers:
+      slug: "custom-outer-apps-auth-flow"
+    model: authentik_flows.flow
+    attrs:
+      name: "Custom Outer Aplications Authorization Flow"
+      title: "Вход в приложение %(app)s"
+      designation: "authorization"
+      compatibility_mode: true
+      authentication: "require_authenticated" 
+
+  # 3. Привязка стадии согласия к созданному потоку (Flow Binding)
+  - identifiers:
+      target: !Find [authentik_flows.flow, [slug, "custom-outer-apps-auth-flow"]]
+      stage: !Find [authentik_stages_consent.consentstage, [name, "custom-explicit-consent-stage"]]
+    model: authentik_flows.flowstagebinding
+    attrs:
+      order: 10
+      evaluate_on_plan: true
+      re_evaluate_on_plan: true

@@ -1,0 +1,48 @@
+version: 1
+metadata:
+  name: Service User - Auth Admin App
+
+entries:
+  - model: authentik_rbac.role
+    id: users-manager-role
+    identifiers:
+      name: "Users Manager"
+    attrs:
+      permissions:
+        - "authentik_core.view_user"
+        - "authentik_core.change_user"
+        - "authentik_core.add_user"
+        - "authentik_core.delete_user"
+        - "authentik_core.reset_user_password"
+
+  - model: authentik_core.user
+    identifiers:
+      username: sa-auth-admin-app
+    attrs:
+      name: "Auth Admin App Service User"
+      type: service_account
+      path: "goauthentik.io/service-accounts"
+      groups:
+        - !Find [authentik_core.group, [name, openfga-allowed]]
+      roles:
+        - !KeyOf users-manager-role
+
+  - model: authentik_core.token
+    identifiers:
+      identifier: sa-auth-admin-app-app-password
+    attrs:
+      user: !Find [authentik_core.user, [username, sa-auth-admin-app]]
+      intent: app_password
+      description: "App Password for Auth Admin App Service User"
+      expiring: false
+      key: !Env SA_AUTH_ADMIN_APP_APP_PASSWORD
+
+  - model: authentik_core.token
+    identifiers:
+      identifier: sa-auth-admin-app-api-token
+    attrs:
+      user: !Find [authentik_core.user, [username, sa-auth-admin-app]]
+      intent: api
+      description: "Api Token for Auth Admin App Service User"
+      expiring: false
+      key: !Env SA_AUTH_ADMIN_APP_API_TOKEN

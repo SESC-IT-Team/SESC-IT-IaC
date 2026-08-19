@@ -1,0 +1,13 @@
+version: 1
+metadata:
+  name: "Get all orders in Spravki service Scope"
+entries:
+  - identifiers:
+      name: "spravki-orders-get-mapping"
+    model: authentik_providers_oauth2.scopemapping
+    attrs:
+      scope_name: "spravki:orders:get"
+      description: "Просмотр всех доступных Вам справок"
+      managed: null
+      expression: |
+        return {}

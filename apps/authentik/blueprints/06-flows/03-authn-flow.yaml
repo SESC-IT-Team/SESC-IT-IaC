@@ -1,0 +1,204 @@
+version: 1
+metadata:
+  name: Custom - Complete Authentication Flow (СУНЦ УрФУ)
+
+entries:
+  # ---------------------------------------------
+  # 1. THE FLOW ITSELF
+  # ---------------------------------------------
+  - identifiers:
+      slug: custom-authentication-flow
+    model: authentik_flows.flow
+    id: flow-custom-auth
+    attrs:
+      name: custom Authentication Flow
+      title: Вход в аккаунт СУНЦ УрФУ
+      designation: authentication
+      authentication: none
+      layout: stacked
+      policy_engine_mode: any
+      denied_action: message_continue
+
+  # ---------------------------------------------
+  # 2. EXPRESSION POLICIES
+  # ---------------------------------------------
+
+  # Policy: Check if Password Stage is needed
+  - identifiers:
+      name: custom-authentication-flow-password-stage
+    id: policy-password-stage
+    model: authentik_policies_expression.expressionpolicy
+    attrs:
+      execution_logging: false
+      expression: |
+        flow_plan = request.context.get("flow_plan")
+        if not flow_plan:
+            return True
+        # If the user does not have a backend attached to it, they haven't
+        # been authenticated yet and we need the password stage
+        return not hasattr(flow_plan.context.get("pending_user"), "backend")
+
+  # Policy: Check if MFA Stage can be skipped (e.g. for WebAuthn Passwordless)
+  - identifiers:
+      name: custom-authentication-flow-authenticator-validate-stage
+    id: policy-mfa-stage
+    model: authentik_policies_expression.expressionpolicy
+    attrs:
+      execution_logging: false
+      expression: |
+        flow_plan = request.context.get("flow_plan")
+        if not flow_plan:
+            return True
+        # If the authentication method is webauthn (passwordless), then we skip the authenticator
+        # validation stage by returning false (true will execute the stage)
+        return not (flow_plan.context.get("auth_method") == "auth_webauthn_pwl")
+
+  # ---------------------------------------------
+  # 3. STAGES
+  # ---------------------------------------------
+
+  # Stage A: Identification
+  - identifiers:
+      name: custom-authentication-identification
+    id: stage-identification
+    model: authentik_stages_identification.identificationstage
+    attrs:
+      user_fields:
+        - email
+        - username
+      case_insensitive_matching: true
+      pretend_user_exists: true
+      show_matched_user: true
+      show_source_labels: false
+      enable_remember_me: false
+
+  # Stage B: Password
+  - identifiers:
+      name: custom-authentication-password
+    id: stage-password
+    model: authentik_stages_password.passwordstage
+    attrs:
+      backends:
+        - authentik.core.auth.InbuiltBackend
+        - authentik.sources.kerberos.auth.KerberosBackend
+        - authentik.sources.ldap.auth.LDAPBackend
+        - authentik.core.auth.TokenBackend
+      failed_attempts_before_cancel: 5
+      allow_show_password: false
+
+  # Stage C: MFA Validation
+  - identifiers:
+      name: custom-authentication-mfa-validation
+    id: stage-mfa
+    model: authentik_stages_authenticator_validate.authenticatorvalidatestage
+    attrs:
+      device_classes:
+        - static
+        - totp
+        - webauthn
+        - duo
+        - sms
+        - email
+      not_configured_action: skip
+      last_auth_threshold: seconds=0
+      webauthn_user_verification: preferred
+
+  # Stage D: Login / Session Creation
+  - identifiers:
+      name: custom-authentication-login
+    id: stage-login
+    model: authentik_stages_user_login.userloginstage
+    attrs:
+      session_duration: seconds=0
+      remember_device: days=30
+      remember_me_offset: seconds=0
+      terminate_other_sessions: false
+      geoip_binding: no_binding
+      network_binding: no_binding
+
+  # ---------------------------------------------
+  # 4. FLOW STAGE BINDINGS
+  # ---------------------------------------------
+
+  # Order 10: Identification Stage
+  - identifiers:
+      target: !KeyOf flow-custom-auth
+      stage: !KeyOf stage-identification
+      order: 10
+    model: authentik_flows.flowstagebinding
+    attrs:
+      re_evaluate_policies: true
+      invalid_response_action: retry
+      policy_engine_mode: any
+
+  # Order 20: Password Stage
+  - identifiers:
+      target: !KeyOf flow-custom-auth
+      stage: !KeyOf stage-password
+      order: 20
+    id: binding-password-stage
+    model: authentik_flows.flowstagebinding
+    attrs:
+      re_evaluate_policies: true
+      invalid_response_action: retry
+      policy_engine_mode: any
+
+  # Order 30: MFA Validation Stage
+  - identifiers:
+      target: !KeyOf flow-custom-auth
+      stage: !KeyOf stage-mfa
+      order: 30
+    id: binding-mfa-stage
+    model: authentik_flows.flowstagebinding
+    attrs:
+      re_evaluate_policies: true
+      invalid_response_action: retry
+      policy_engine_mode: any
+
+  # Order 100: User Login Stage
+  - identifiers:
+      target: !KeyOf flow-custom-auth
+      stage: !KeyOf stage-login
+      order: 100
+    model: authentik_flows.flowstagebinding
+    attrs:
+      re_evaluate_policies: true
+      invalid_response_action: retry
+      policy_engine_mode: any
+
+  # ---------------------------------------------
+  # 5. POLICY BINDINGS (Attaching policies to stage bindings)
+  # ---------------------------------------------
+
+  # Attach Password Check Policy to Password Stage Binding
+  - identifiers:
+      target: !KeyOf binding-password-stage
+      policy: !KeyOf policy-password-stage
+      order: 10
+    model: authentik_policies.policybinding
+    attrs:
+      enabled: true
+      failure_result: true
+      timeout: 30
+      negate: false
+
+  # Attach MFA Check Policy to MFA Stage Binding
+  - identifiers:
+      target: !KeyOf binding-mfa-stage
+      policy: !KeyOf policy-mfa-stage
+      order: 10
+    model: authentik_policies.policybinding
+    attrs:
+      enabled: true
+      failure_result: true
+      timeout: 30
+      negate: false
+
+  # ---------------------------------------------
+  # 6. SET AS DEFAULT BRAND AUTHENTICATION FLOW
+  # ---------------------------------------------
+  - identifiers:
+      domain: authentik-default
+    model: authentik_brands.brand
+    attrs:
+      flow_authentication: !KeyOf flow-custom-auth

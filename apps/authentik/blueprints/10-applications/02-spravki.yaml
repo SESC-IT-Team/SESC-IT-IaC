@@ -1,0 +1,44 @@
+version: 1
+metadata:
+  name: "Spravki App"
+entries:
+  - identifiers:
+      name: "spravki-provider"
+    model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      authorization_flow: !Find [authentik_flows.flow, [slug, custom-inner-apps-auth-flow]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+      
+      client_type: "confidential"
+      
+      client_id: !Env SPRAVKI_CLIENT_ID
+      client_secret: !Env SPRAVKI_CLIENT_SECRET
+      
+      sub_mode: "user_uuid"
+      issuer_mode: "per_provider"
+      
+      redirect_uris: 
+        - url: !Env SPRAVKI_REDIRECT_URI
+          matching_mode: "strict" 
+
+      signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
+
+      grant_types:
+        - "authorization_code"
+        - "refresh_token"
+
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "openid"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "custom-offline_access-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "custom-profile-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "auth-children-read-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "spravki-orders-create-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "spravki-orders-get-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "spravki-orders-get_my-mapping"]]
+
+  - identifiers:
+      slug: "spravki-app"
+    model: authentik_core.application
+    attrs:
+      name: "Сервис Справок СУНЦ УрФУ"
+      provider: !Find [authentik_providers_oauth2.oauth2provider, [name, "spravki-provider"]]

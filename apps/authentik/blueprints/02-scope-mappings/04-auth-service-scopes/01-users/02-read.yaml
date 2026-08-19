@@ -1,0 +1,13 @@
+version: 1
+metadata:
+  name: "Read users in Auth service Scope"
+entries:
+  - identifiers:
+      name: "auth-users-read-mapping"
+    model: authentik_providers_oauth2.scopemapping
+    attrs:
+      scope_name: "auth:users:read"
+      description: "Просмотр профилей других пользователей от Вашего лица"
+      managed: null
+      expression: |
+        return {}

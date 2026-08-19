@@ -1,0 +1,13 @@
+version: 1
+metadata:
+  name: "Create orders in Spravki service Scope"
+entries:
+  - identifiers:
+      name: "spravki-orders-create-mapping"
+    model: authentik_providers_oauth2.scopemapping
+    attrs:
+      scope_name: "spravki:orders:create"
+      description: "Заказ справок от Вашего лица"
+      managed: null
+      expression: |
+        return {}

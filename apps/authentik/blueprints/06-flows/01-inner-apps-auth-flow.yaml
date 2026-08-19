@@ -1,0 +1,17 @@
+version: 1
+metadata:
+  name: "Inner Applications Authorization and Consent Flow"
+  context:
+    labels:
+      blueprint_v1_v1_bootstrap: "true"
+entries:
+  # 2. Создание кастомного Потока авторизации (Authorization Flow)
+  - identifiers:
+      slug: "custom-inner-apps-auth-flow"
+    model: authentik_flows.flow
+    attrs:
+      name: "Custom Outer Aplications Authorization Flow"
+      title: "Вход в приложение %(app)s"
+      designation: "authorization"
+      compatibility_mode: true
+      authentication: "require_authenticated" 

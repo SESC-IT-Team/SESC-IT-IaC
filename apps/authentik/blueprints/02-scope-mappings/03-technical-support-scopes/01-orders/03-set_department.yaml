@@ -1,0 +1,13 @@
+version: 1
+metadata:
+  name: "Set department to all orders in Technical Support service Scope"
+entries:
+  - identifiers:
+      name: "technical_support-orders-set_department-mapping"
+    model: authentik_providers_oauth2.scopemapping
+    attrs:
+      scope_name: "technical_support:orders:set_department"
+      description: "Привязка отдела ко всем доступным Вам заявкам от Вашего лица"
+      managed: null
+      expression: |
+        return {}
