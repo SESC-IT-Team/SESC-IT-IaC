@@ -32,9 +32,26 @@ spec:
               value: {{ .Values.storage.rootDirectory | quote }}
             - name: REGISTRY_STORAGE_DELETE_ENABLED
               value: {{ .Values.storage.deleteEnabled | quote }}
+            {{- if .Values.auth.enabled }}
+            - name: REGISTRY_AUTH
+              value: htpasswd
+            - name: REGISTRY_AUTH_HTPASSWD_REALM
+              value: {{ .Values.auth.realm | quote }}
+            - name: REGISTRY_AUTH_HTPASSWD_PATH
+              value: /auth/htpasswd
+            {{- end }}
+          {{- if .Values.auth.enabled }}
           volumeMounts:
             - name: registry-data
               mountPath: {{ .Values.storage.rootDirectory }}
+            - name: auth
+              mountPath: /auth
+              readOnly: true
+          {{- else }}
+          volumeMounts:
+            - name: registry-data
+              mountPath: {{ .Values.storage.rootDirectory }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
@@ -42,3 +59,11 @@ spec:
           hostPath:
             path: {{ .Values.storage.hostPath }}
             type: {{ .Values.storage.hostPathType }}
+        {{- if .Values.auth.enabled }}
+        - name: auth
+          secret:
+            secretName: registry-htpasswd
+            items:
+              - key: HTPASSWD
+                path: htpasswd
+        {{- end }}

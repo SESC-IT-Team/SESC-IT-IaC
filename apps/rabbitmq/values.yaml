@@ -1,0 +1,19 @@
+namespace: rabbitmq
+
+image: rabbitmq:3.13-management
+
+# Non-secret defaults; passwords come from Vault kv/apps/rabbitmq.
+rabbitmq:
+  user: sesc
+  vhost: /
+
+storage:
+  size: 5Gi
+  storageClass: local-path
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

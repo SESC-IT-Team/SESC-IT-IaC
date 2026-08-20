@@ -1,5 +1,10 @@
-# Default values for the private Docker registry.
+# Values for the private Docker registry.
 # Used by ArgoCD Application argocd/apps/registry.yaml.
+#
+# Secure mode:
+#   - external access via https://reg.sesc-it-team.ru (Traefik Ingress + LetsEncrypt)
+#   - basic auth (htpasswd) from Vault kv/apps/registry
+#   - containerd keeps pulling via hostPort mirror http://127.0.0.1:5000
 image:
   repository: registry
   tag: "3"
@@ -7,7 +12,8 @@ image:
 
 replicas: 1
 
-# Bind on the host so containerd (registries.yaml -> 127.0.0.1:5000) can pull.
+# Keep the host binding so containerd (registries.yaml -> 127.0.0.1:5000) can pull
+# without auth and without leaving the host.
 hostNetwork: true
 dnsPolicy: ClusterFirstWithHostNet
 
@@ -17,6 +23,15 @@ service:
 ports:
   containerPort: 5000
   hostPort: 5000
+
+ingress:
+  host: reg.sesc-it-team.ru
+  tlsSecretName: registry-tls
+
+# Enable htpasswd auth (requires kv/apps/registry:HTPASSWD in Vault).
+auth:
+  enabled: true
+  realm: "SESC-IT Registry"
 
 storage:
   rootDirectory: /var/lib/registry

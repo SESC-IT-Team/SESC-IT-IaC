@@ -1,0 +1,31 @@
+namespace: technical-support
+
+image:
+  repository: reg.sesc-it-team.ru/technical-support-backend
+  tag: "d91b55e"
+  pullPolicy: IfNotPresent
+
+host: api.support.sesc-it-team.ru
+tlsSecretName: technical-support-backend-tls
+
+port: 8123
+
+rootPath: /
+
+postgres:
+  image: postgres:16-alpine
+  database: technical_support
+  user: techsupport
+  storage:
+    size: 5Gi
+    storageClass: local-path
+
+auth:
+  baseUrl: https://auth.sesc-it-team.ru
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

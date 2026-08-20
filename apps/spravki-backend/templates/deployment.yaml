@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spravki-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: spravki-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spravki-backend
+  template:
+    metadata:
+      labels:
+        app: spravki-backend
+    spec:
+      containers:
+        - name: spravki-backend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.port }}
+          env:
+            - name: POSTGRES_HOST
+              value: spravki-postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
+            - name: ROOT_PATH
+              value: {{ .Values.rootPath | quote }}
+            - name: AUTH_BASE_URL
+              value: {{ .Values.auth.baseUrl | quote }}
+            - name: RABBITMQ_HOST
+              value: {{ .Values.renderer.rabbitmqHost | quote }}
+            - name: RABBITMQ_PORT
+              value: {{ .Values.renderer.rabbitmqPort | quote }}
+            - name: S3_URL
+              value: {{ .Values.renderer.s3Url | quote }}
+            - name: S3_PORT
+              value: {{ .Values.renderer.s3Port | quote }}
+          envFrom:
+            - secretRef:
+                name: spravki-backend-secrets
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

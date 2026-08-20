@@ -1,6 +1,7 @@
 # ---- K3s / ArgoCD bootstrap ----------------------------------------------
 iac_dir: "/opt/apps/SESC-IT-IaC"
 registry_host: "127.0.0.1:5000"
+registry_domain: "reg.sesc-it-team.ru"
 registry_data_dir: "/opt/registry/data"
 
 argocd_domain: "argocd.sesc-it-team.ru"

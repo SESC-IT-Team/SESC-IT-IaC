@@ -1,0 +1,8 @@
+apiVersion: v2
+name: redis
+description: Redis for SESC-IT apps (taskiq result backend).
+type: application
+version: 0.1.0
+appVersion: "7"
+maintainers:
+  - name: SESC-IT

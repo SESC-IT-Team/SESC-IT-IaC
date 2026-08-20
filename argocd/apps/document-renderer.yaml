@@ -1,0 +1,27 @@
+# ArgoCD Application: Document renderer worker.
+# Source: apps/document-renderer/ (helm chart in this repo).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: document-renderer
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
+    targetRevision: HEAD
+    path: apps/document-renderer
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: document-renderer
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

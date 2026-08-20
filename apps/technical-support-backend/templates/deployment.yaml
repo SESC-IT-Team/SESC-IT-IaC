@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: technical-support-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: technical-support-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: technical-support-backend
+  template:
+    metadata:
+      labels:
+        app: technical-support-backend
+    spec:
+      containers:
+        - name: technical-support-backend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - alembic upgrade head && uv run python -m src.main
+          ports:
+            - name: http
+              containerPort: {{ .Values.port }}
+          env:
+            - name: POSTGRES_HOST
+              value: technical-support-postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
+            - name: ROOT_PATH
+              value: {{ .Values.rootPath | quote }}
+            - name: AUTH_BASE_URL
+              value: {{ .Values.auth.baseUrl | quote }}
+          envFrom:
+            - secretRef:
+                name: technical-support-backend-secrets
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

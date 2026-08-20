@@ -1,0 +1,39 @@
+namespace: spravki
+
+image:
+  repository: reg.sesc-it-team.ru/spravki-backend
+  tag: "4c8bcca"
+  pullPolicy: IfNotPresent
+
+host: api.spravki.sesc-it-team.ru
+tlsSecretName: spravki-backend-tls
+
+port: 8000
+
+# FastAPI root_path: empty, the backend is served on its own subdomain
+rootPath: /
+
+postgres:
+  image: postgres:16-alpine
+  database: certificates
+  user: spravki
+  storage:
+    size: 5Gi
+    storageClass: local-path
+
+auth:
+  baseUrl: https://auth.sesc-it-team.ru
+
+# document-renderer-sdk client endpoints (in-cluster)
+renderer:
+  rabbitmqHost: rabbitmq.rabbitmq.svc.cluster.local
+  rabbitmqPort: 5672
+  s3Url: minio.minio.svc.cluster.local
+  s3Port: 9000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

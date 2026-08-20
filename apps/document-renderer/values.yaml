@@ -1,0 +1,26 @@
+namespace: document-renderer
+
+image:
+  repository: reg.sesc-it-team.ru/document-renderer
+  tag: "4e155d2"
+  pullPolicy: IfNotPresent
+
+rabbitmq:
+  host: rabbitmq.rabbitmq.svc.cluster.local
+  port: 5672
+
+redis:
+  host: redis.redis.svc.cluster.local
+  port: 6379
+  db: 0
+
+s3:
+  url: minio.minio.svc.cluster.local
+  port: 9000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

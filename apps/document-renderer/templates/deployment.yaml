@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-renderer
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: document-renderer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: document-renderer
+  template:
+    metadata:
+      labels:
+        app: document-renderer
+    spec:
+      containers:
+        - name: document-renderer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - uv
+            - run
+            - taskiq
+            - worker
+            - --log-level=INFO
+            - src.tasks:broker
+          env:
+            - name: RABBITMQ_HOST
+              value: {{ .Values.rabbitmq.host | quote }}
+            - name: RABBITMQ_PORT
+              value: {{ .Values.rabbitmq.port | quote }}
+            - name: REDIS_HOST
+              value: {{ .Values.redis.host | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.redis.port | quote }}
+            - name: REDIS_DB
+              value: {{ .Values.redis.db | quote }}
+            - name: S3_URL
+              value: {{ .Values.s3.url | quote }}
+            - name: S3_PORT
+              value: {{ .Values.s3.port | quote }}
+          envFrom:
+            - secretRef:
+                name: document-renderer-secrets
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
