@@ -2,8 +2,8 @@ namespace: minio
 
 image: quay.io/minio/minio:latest
 
-apiHost: s3.sesc-it-team.ru
-consoleHost: minio.sesc-it-team.ru
+apiHostPrefix: s3
+consoleHostPrefix: minio
 
 apiPort: 9000
 consolePort: 9001

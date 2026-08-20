@@ -1,4 +1,14 @@
 ---
+- name: Load cluster domain config
+  ansible.builtin.include_vars:
+    file: "{{ playbook_dir }}/../../charts/cluster/values.yaml"
+    name: cluster_config
+
+- name: Derive service domains from baseDomain
+  ansible.builtin.set_fact:
+    registry_domain: "reg.{{ cluster_config.global.baseDomain }}"
+    argocd_domain: "argocd.{{ cluster_config.global.baseDomain }}"
+
 - name: Create Registry data directory
   ansible.builtin.file:
     path: "{{ registry_data_dir }}"
@@ -31,12 +41,6 @@
             - "http://{{ registry_host }}"
   register: registries_config
 
-- name: Restart K3s to apply registries.yaml
-  ansible.builtin.systemd:
-    name: k3s
-    state: restarted
-  when: registries_config is changed
-
 - name: Install K3s when absent
   ansible.builtin.shell: |
     curl -sfL https://get.k3s.io | sh -
@@ -48,6 +52,12 @@
     name: k3s
     enabled: true
     state: started
+
+- name: Restart K3s to apply registries.yaml
+  ansible.builtin.systemd:
+    name: k3s
+    state: restarted
+  when: registries_config is changed
 
 - name: Install Helm when absent
   ansible.builtin.shell: |
@@ -255,6 +265,15 @@
     create_namespace: true
     values_files:
       - "{{ iac_dir }}/argocd/values.yaml"
+    values:
+      global:
+        domain: "{{ argocd_domain }}"
+      server:
+        ingress:
+          hostname: "{{ argocd_domain }}"
+      configs:
+        cm:
+          url: "https://{{ argocd_domain }}"
     wait: true
     wait_timeout: 10m
     atomic: false

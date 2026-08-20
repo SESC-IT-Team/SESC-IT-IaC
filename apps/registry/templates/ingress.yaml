@@ -11,10 +11,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - {{ .Values.ingress.host | quote }}
+        - {{ include "cluster.registry" . | quote }}
       secretName: {{ .Values.ingress.tlsSecretName }}
   rules:
-    - host: {{ .Values.ingress.host | quote }}
+    - host: {{ include "cluster.registry" . | quote }}
       http:
         paths:
           - path: /

@@ -10,13 +10,13 @@ data:
   POSTGRES_USER: {{ .Values.config.postgres.user | quote }}
   POSTGRES_DB: {{ .Values.config.postgres.database | quote }}
 
-  ALLOWED_ORIGINS: {{ .Values.config.allowedOrigins | toJson | quote }}
+  ALLOWED_ORIGINS: {{ include "lyceum-auth.allowedOrigins" . | quote }}
   ENV_FILE_PATH: {{ .Values.config.envFilePath | quote }}
   ROOT_PATH: {{ .Values.config.rootPath | quote }}
 
   ADMIN_LOGIN: {{ .Values.config.adminLogin | quote }}
 
-  DOMAIN: {{ .Values.config.domain | quote }}
-  AUTHENTIK_URL: {{ .Values.config.authentikUrl | quote }}
-  ALLOWED_ISSUERS: {{ .Values.config.allowedIssuers | toJson | quote }}
+  DOMAIN: {{ include "lyceum-auth.host" . | quote }}
+  AUTHENTIK_URL: {{ include "lyceum-auth.authentikUrl" . | quote }}
+  ALLOWED_ISSUERS: {{ include "lyceum-auth.allowedIssuers" . | quote }}
   USERS_PATH: {{ .Values.config.usersPath | quote }}

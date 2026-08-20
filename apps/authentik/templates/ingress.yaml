@@ -11,10 +11,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - {{ .Values.host | quote }}
+        - {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
       secretName: authentik-tls
   rules:
-    - host: {{ .Values.host | quote }}
+    - host: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
       http:
         paths:
           - path: /

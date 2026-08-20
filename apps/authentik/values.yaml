@@ -5,7 +5,7 @@ image:
   tag: "2026.5.3"
   pullPolicy: IfNotPresent
 
-host: auth.sesc-it-team.ru
+hostPrefix: auth
 
 postgres:
   image: postgres:16-alpine

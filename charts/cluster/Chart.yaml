@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cluster
+description: Shared cluster settings (baseDomain) and FQDN helpers.
+type: library
+version: 1.0.0

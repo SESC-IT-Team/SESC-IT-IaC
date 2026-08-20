@@ -1,11 +1,11 @@
 namespace: spravki
 
 image:
-  repository: reg.sesc-it-team.ru/spravki-frontend
+  repository: spravki-frontend
   tag: "a67cf1b"
   pullPolicy: IfNotPresent
 
-host: spravki.sesc-it-team.ru
+hostPrefix: spravki
 tlsSecretName: spravki-frontend-tls
 
 port: 80

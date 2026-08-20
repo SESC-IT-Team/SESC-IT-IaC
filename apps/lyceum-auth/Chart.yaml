@@ -4,3 +4,7 @@ description: Lyceum Auth Backend
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
+dependencies:
+  - name: cluster
+    version: 1.0.0
+    repository: "file://../../charts/cluster"

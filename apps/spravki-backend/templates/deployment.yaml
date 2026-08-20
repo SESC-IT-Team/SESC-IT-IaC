@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: spravki-backend
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: {{ include "cluster.privateImage" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -34,7 +34,7 @@ spec:
             - name: ROOT_PATH
               value: {{ .Values.rootPath | quote }}
             - name: AUTH_BASE_URL
-              value: {{ .Values.auth.baseUrl | quote }}
+              value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | quote }}
             - name: RABBITMQ_HOST
               value: {{ .Values.renderer.rabbitmqHost | quote }}
             - name: RABBITMQ_PORT

@@ -1,7 +1,7 @@
 namespace: document-renderer
 
 image:
-  repository: reg.sesc-it-team.ru/document-renderer
+  repository: document-renderer
   tag: "4e155d2"
   pullPolicy: IfNotPresent
 

@@ -29,39 +29,32 @@ config:
     database: lyceum_auth
     user: lyceum_auth
 
-  allowedOrigins:
-    - https://users.sesc-it-team.ru
-
   envFilePath: ".env"
   rootPath: "/"
 
   adminLogin: admin
 
-  domain: users.sesc-it-team.ru
-
-  authentikUrl: https://auth.sesc-it-team.ru
-
-  allowedIssuers:
-    - https://auth.sesc-it-team.ru/application/o/spravki-app/
-    - https://auth.sesc-it-team.ru/application/o/technical-support-app/
-    - https://auth.sesc-it-team.ru/application/o/auth-admin-app/
-
   usersPath: users
+
+  allowedIssuerAppSlugs:
+    - spravki-app
+    - technical-support-app
+    - auth-admin-app
+
+hostPrefix: users
+authentikHostPrefix: auth
 
 certificate:
   enabled: true
   issuerRef:
     name: sesc-internal-issuer  # <-- Меняем здесь
     kind: ClusterIssuer
-  dnsNames:
-    - users.sesc-it-team.ru
   secretName: lyceum-auth-tls
   duration: 2160h
   renewBefore: 360h
 
 ingressRoute:
   enabled: true
-  host: users.sesc-it-team.ru
   entryPoints:
     - websecure
   tlsSecretName: lyceum-auth-tls

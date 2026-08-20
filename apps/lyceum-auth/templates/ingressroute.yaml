@@ -10,7 +10,7 @@ spec:
     {{- toYaml .Values.ingressRoute.entryPoints | nindent 4 }}
   routes:
     - kind: Rule
-      match: Host(`{{ .Values.ingressRoute.host }}`) && PathPrefix(`/`)
+      match: Host(`{{ include "lyceum-auth.host" . }}`) && PathPrefix(`/`)
       services:
         - name: {{ include "lyceum-auth.fullname" . }}
           port: 8000

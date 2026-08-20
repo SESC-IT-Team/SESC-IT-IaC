@@ -11,10 +11,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - {{ .Values.apiHost | quote }}
+        - {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.apiHostPrefix) | quote }}
       secretName: {{ .Values.tlsSecretName }}
   rules:
-    - host: {{ .Values.apiHost | quote }}
+    - host: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.apiHostPrefix) | quote }}
       http:
         paths:
           - path: /
@@ -38,10 +38,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - {{ .Values.consoleHost | quote }}
+        - {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.consoleHostPrefix) | quote }}
       secretName: {{ .Values.tlsSecretName }}-console
   rules:
-    - host: {{ .Values.consoleHost | quote }}
+    - host: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.consoleHostPrefix) | quote }}
       http:
         paths:
           - path: /

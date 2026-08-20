@@ -1,11 +1,11 @@
 namespace: technical-support
 
 image:
-  repository: reg.sesc-it-team.ru/technical-support-backend
+  repository: technical-support-backend
   tag: "d91b55e"
   pullPolicy: IfNotPresent
 
-host: api.support.sesc-it-team.ru
+hostPrefix: api.support
 tlsSecretName: technical-support-backend-tls
 
 port: 8123
@@ -21,7 +21,7 @@ postgres:
     storageClass: local-path
 
 auth:
-  baseUrl: https://auth.sesc-it-team.ru
+  hostPrefix: auth
 
 resources:
   requests:

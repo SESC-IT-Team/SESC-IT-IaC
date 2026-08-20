@@ -6,3 +6,7 @@ version: 0.1.0
 appVersion: "3"
 maintainers:
   - name: SESC-IT
+dependencies:
+  - name: cluster
+    version: 1.0.0
+    repository: "file://../../charts/cluster"

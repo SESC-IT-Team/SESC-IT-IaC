@@ -2,78 +2,72 @@ global:
   enabled: true
   tlsDisable: true
 
-server:
-  image:
-    repository: hashicorp/vault
+vault:
+  fullnameOverride: vault
 
-  ha:
-    enabled: true
-    replicas: 1
+  server:
+    image:
+      repository: hashicorp/vault
 
-    disruptionBudget:
+    ha:
+      enabled: true
+      replicas: 1
+
+      disruptionBudget:
+        enabled: false
+
+      raft:
+        enabled: true
+        setNodeId: true
+        config: |
+          ui = true
+
+          listener "tcp" {
+            tls_disable = 1
+            address         = "[::]:8200"
+            cluster_address = "[::]:8201"
+          }
+
+          storage "raft" {
+            path    = "/vault/data"
+            node_id = "vault-0"
+          }
+
+          service_registration "kubernetes" {}
+
+    dataStorage:
+      enabled: true
+      size: 10Gi
+      storageClass: local-path
+
+    auditStorage:
+      enabled: true
+      size: 5Gi
+      storageClass: local-path
+
+    readinessProbe:
+      enabled: true
+      timeoutSeconds: 10
+      failureThreshold: 5
+      periodSeconds: 10
+      initialDelaySeconds: 5
+
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+    ingress:
       enabled: false
 
-    raft:
-      enabled: true
-      setNodeId: true
-      config: |
-        ui = true
-
-        listener "tcp" {
-          tls_disable = 1
-          address         = "[::]:8200"
-          cluster_address = "[::]:8201"
-        }
-
-        storage "raft" {
-          path    = "/vault/data"
-          node_id = "vault-0"
-        }
-
-        service_registration "kubernetes" {}
-
-  dataStorage:
+  ui:
     enabled: true
-    size: 10Gi
-    storageClass: local-path
+    serviceType: ClusterIP
 
-  auditStorage:
-    enabled: true
-    size: 5Gi
-    storageClass: local-path
+  injector:
+    enabled: false
 
-  readinessProbe:
-    enabled: true
-    timeoutSeconds: 10
-    failureThreshold: 5
-    periodSeconds: 10
-    initialDelaySeconds: 5
-
-  resources:
-    requests:
-      cpu: 250m
-      memory: 512Mi
-    limits:
-      memory: 1Gi
-
-  ingress:
-    enabled: true
-    ingressClassName: traefik
-    hosts:
-      - host: vault.sesc-it-team.ru
-        paths: []
-    tls:
-      - hosts:
-          - vault.sesc-it-team.ru
-        secretName: vault-tls
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-      acme.cert-manager.io/http01-edit-in-place: "true"
-
-ui:
-  enabled: true
-  serviceType: ClusterIP
-
-injector:
-  enabled: false
+hostPrefix: vault
+tlsSecretName: vault-tls

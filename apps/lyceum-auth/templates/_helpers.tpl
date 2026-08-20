@@ -40,6 +40,28 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 {{- end }}
 
+{{- define "lyceum-auth.host" -}}
+{{- include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) -}}
+{{- end }}
+
+{{- define "lyceum-auth.authentikUrl" -}}
+{{- include "cluster.url" (dict "ctx" . "prefix" .Values.authentikHostPrefix) -}}
+{{- end }}
+
+{{- define "lyceum-auth.allowedOrigins" -}}
+{{- list (include "cluster.url" (dict "ctx" . "prefix" .Values.hostPrefix)) | toJson -}}
+{{- end }}
+
+{{- define "lyceum-auth.allowedIssuers" -}}
+{{- $root := . -}}
+{{- $authentikUrl := include "lyceum-auth.authentikUrl" $root -}}
+{{- $issuers := list -}}
+{{- range $root.Values.config.allowedIssuerAppSlugs }}
+{{- $issuers = append $issuers (printf "%s/application/o/%s/" $authentikUrl .) -}}
+{{- end }}
+{{- $issuers | toJson -}}
+{{- end }}
+
 {{- define "lyceum-auth.image" -}}
 {{- if .Values.image.tag }}
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag }}

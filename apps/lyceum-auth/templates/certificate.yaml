@@ -11,7 +11,7 @@ spec:
     name: {{ .Values.certificate.issuerRef.name }}
     kind: {{ .Values.certificate.issuerRef.kind }}
   dnsNames:
-    {{- toYaml .Values.certificate.dnsNames | nindent 4 }}
+    - {{ include "lyceum-auth.host" . | quote }}
   duration: {{ .Values.certificate.duration }}
   renewBefore: {{ .Values.certificate.renewBefore }}
 {{- end }}

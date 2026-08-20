@@ -1,11 +1,11 @@
 namespace: spravki
 
 image:
-  repository: reg.sesc-it-team.ru/spravki-backend
+  repository: spravki-backend
   tag: "4c8bcca"
   pullPolicy: IfNotPresent
 
-host: api.spravki.sesc-it-team.ru
+hostPrefix: api.spravki
 tlsSecretName: spravki-backend-tls
 
 port: 8000
@@ -22,7 +22,7 @@ postgres:
     storageClass: local-path
 
 auth:
-  baseUrl: https://auth.sesc-it-team.ru
+  hostPrefix: auth
 
 # document-renderer-sdk client endpoints (in-cluster)
 renderer:

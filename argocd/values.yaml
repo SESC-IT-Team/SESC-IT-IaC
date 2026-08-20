@@ -2,10 +2,8 @@
 # Installed by ansible/roles/k3s_setup/tasks/main.yml
 #
 # Server: ClusterIP + Ingress on k3s embedded Traefik.
-# Domain: argocd.sesc-it-team.ru (var: argocd_domain in ansible/group_vars/all.yml)
-
-global:
-  domain: argocd.sesc-it-team.ru
+# Hostname / URL are injected by ansible from charts/cluster/values.yaml
+# (global.baseDomain → argocd.<baseDomain>).
 
 server:
   service:
@@ -14,7 +12,6 @@ server:
   ingress:
     enabled: true
     ingressClassName: traefik
-    hostname: argocd.sesc-it-team.ru
     tls: true
     tlsSecretName: argocd-server-tls
     annotations:
@@ -33,7 +30,6 @@ server:
 
 configs:
   cm:
-    url: https://argocd.sesc-it-team.ru
     # Repository is public, no credentials needed.
     repositories: |
       - name: sesc-it-iac
