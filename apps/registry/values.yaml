@@ -30,7 +30,7 @@ ingress:
 
 # Enable htpasswd auth (requires kv/apps/registry:HTPASSWD in Vault).
 auth:
-  enabled: true
+  enabled: false
   realm: "SESC-IT Registry"
 
 storage:
