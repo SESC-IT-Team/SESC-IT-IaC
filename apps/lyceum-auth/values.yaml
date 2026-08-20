@@ -51,7 +51,7 @@ config:
 certificate:
   enabled: true
   issuerRef:
-    name: letsencrypt-prod
+    name: sesc-internal-issuer  # <-- Меняем здесь
     kind: ClusterIssuer
   dnsNames:
     - users.sesc-it-team.ru
