@@ -42,12 +42,19 @@ server:
     size: 5Gi
     storageClass: local-path
 
+  readinessProbe:
+    enabled: true
+    timeoutSeconds: 10
+    failureThreshold: 5
+    periodSeconds: 10
+    initialDelaySeconds: 5
+
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: 250m
+      memory: 512Mi
     limits:
-      memory: 768Mi
+      memory: 1Gi
 
   ingress:
     enabled: true
