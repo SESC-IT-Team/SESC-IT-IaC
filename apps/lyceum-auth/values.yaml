@@ -1,0 +1,137 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/sesc-it-team/lyceum-auth-backend
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+externalSecret:
+  enabled: true
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  remoteRef:
+    key: apps/lyceum-auth
+  targetSecretName: lyceum-auth-secrets
+  refreshInterval: 1h
+
+config:
+  postgres:
+    host: lyceum-auth-postgresql
+    port: "5432"
+    database: lyceum_auth
+    user: lyceum_auth
+
+  allowedOrigins:
+    - https://users.sesc-it-team.ru
+
+  envFilePath: ".env"
+  rootPath: "/"
+
+  adminLogin: admin
+
+  domain: users.sesc-it-team.ru
+
+  authentikUrl: https://auth.sesc-it-team.ru
+
+  allowedIssuers:
+    - https://auth.sesc-it-team.ru/application/o/spravki-app/
+    - https://auth.sesc-it-team.ru/application/o/technical-support-app/
+    - https://auth.sesc-it-team.ru/application/o/auth-admin-app/
+
+  usersPath: users
+
+certificate:
+  enabled: true
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - users.sesc-it-team.ru
+  secretName: lyceum-auth-tls
+  duration: 2160h
+  renewBefore: 360h
+
+ingressRoute:
+  enabled: true
+  host: users.sesc-it-team.ru
+  entryPoints:
+    - websecure
+  tlsSecretName: lyceum-auth-tls
+
+postgresql:
+  enabled: true
+
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+
+  service:
+    port: 5432
+
+  persistence:
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+persistence:
+  jwtKeys:
+    enabled: true
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+
+migration:
+  enabled: true
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 86400
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+probes:
+  startup:
+    failureThreshold: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
+  liveness:
+    initialDelaySeconds: 10
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

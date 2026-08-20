@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "lyceum-auth.fullname" . }}-config
+  labels:
+    {{- include "lyceum-auth.labels" . | nindent 4 }}
+data:
+  POSTGRES_HOST: {{ .Values.config.postgres.host | quote }}
+  POSTGRES_PORT: {{ .Values.config.postgres.port | quote }}
+  POSTGRES_USER: {{ .Values.config.postgres.user | quote }}
+  POSTGRES_DB: {{ .Values.config.postgres.database | quote }}
+
+  ALLOWED_ORIGINS: {{ .Values.config.allowedOrigins | toJson | quote }}
+  ENV_FILE_PATH: {{ .Values.config.envFilePath | quote }}
+  ROOT_PATH: {{ .Values.config.rootPath | quote }}
+
+  ADMIN_LOGIN: {{ .Values.config.adminLogin | quote }}
+
+  DOMAIN: {{ .Values.config.domain | quote }}
+  AUTHENTIK_URL: {{ .Values.config.authentikUrl | quote }}
+  ALLOWED_ISSUERS: {{ .Values.config.allowedIssuers | toJson | quote }}
+  USERS_PATH: {{ .Values.config.usersPath | quote }}

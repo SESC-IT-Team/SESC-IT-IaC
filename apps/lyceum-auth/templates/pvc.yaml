@@ -1,0 +1,18 @@
+{{- if and .Values.persistence.jwtKeys.enabled (not .Values.persistence.jwtKeys.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "lyceum-auth.fullname" . }}-jwt-keys
+  labels:
+    {{- include "lyceum-auth.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.persistence.jwtKeys.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.jwtKeys.size }}
+  {{- with .Values.persistence.jwtKeys.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}
+
