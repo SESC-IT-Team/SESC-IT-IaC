@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spravki-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: spravki-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: spravki-frontend
+  ports:
+    - name: http
+      port: {{ .Values.port }}
+      targetPort: http

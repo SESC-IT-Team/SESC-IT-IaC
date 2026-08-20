@@ -1,0 +1,22 @@
+namespace: minio
+
+image: quay.io/minio/minio:latest
+
+apiHost: s3.sesc-it-team.ru
+consoleHost: minio.sesc-it-team.ru
+
+apiPort: 9000
+consolePort: 9001
+
+tlsSecretName: minio-tls
+
+storage:
+  size: 10Gi
+  storageClass: local-path
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

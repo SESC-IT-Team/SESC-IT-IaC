@@ -1,0 +1,14 @@
+namespace: redis
+
+image: redis:7-alpine
+
+storage:
+  size: 2Gi
+  storageClass: local-path
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi

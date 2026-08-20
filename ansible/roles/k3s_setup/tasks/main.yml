@@ -15,7 +15,7 @@
     group: root
     mode: "0755"
 
-- name: Configure local HTTP Registry for K3s containerd
+- name: Configure K3s containerd registries
   ansible.builtin.copy:
     dest: /etc/rancher/k3s/registries.yaml
     owner: root
@@ -26,6 +26,16 @@
         "{{ registry_host }}":
           endpoint:
             - "http://{{ registry_host }}"
+        "{{ registry_domain }}":
+          endpoint:
+            - "http://{{ registry_host }}"
+  register: registries_config
+
+- name: Restart K3s to apply registries.yaml
+  ansible.builtin.systemd:
+    name: k3s
+    state: restarted
+  when: registries_config is changed
 
 - name: Install K3s when absent
   ansible.builtin.shell: |

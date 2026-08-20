@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-api
+  namespace: {{ .Values.namespace }}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ .Values.apiHost | quote }}
+      secretName: {{ .Values.tlsSecretName }}
+  rules:
+    - host: {{ .Values.apiHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio
+                port:
+                  number: {{ .Values.apiPort }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-console
+  namespace: {{ .Values.namespace }}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ .Values.consoleHost | quote }}
+      secretName: {{ .Values.tlsSecretName }}-console
+  rules:
+    - host: {{ .Values.consoleHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio
+                port:
+                  number: {{ .Values.consolePort }}

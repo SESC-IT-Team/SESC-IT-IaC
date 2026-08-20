@@ -1,0 +1,27 @@
+# ArgoCD Application: Technical Support backend.
+# Source: apps/technical-support-backend/ (helm chart in this repo).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: technical-support-backend
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
+    targetRevision: HEAD
+    path: apps/technical-support-backend
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: technical-support
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

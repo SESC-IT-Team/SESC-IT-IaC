@@ -53,5 +53,16 @@ ui:
   enabled: true
   serviceType: ClusterIP
 
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: vault.sesc-it-team.ru
+    tls: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+      acme.cert-manager.io/http01-edit-in-place: "true"
+
 injector:
   enabled: false

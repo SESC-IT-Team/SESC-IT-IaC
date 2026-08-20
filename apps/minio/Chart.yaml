@@ -1,0 +1,8 @@
+apiVersion: v2
+name: minio
+description: MinIO S3-compatible object storage for SESC-IT apps.
+type: application
+version: 0.1.0
+appVersion: "latest"
+maintainers:
+  - name: SESC-IT

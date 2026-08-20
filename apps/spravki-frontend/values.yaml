@@ -1,0 +1,18 @@
+namespace: spravki
+
+image:
+  repository: reg.sesc-it-team.ru/spravki-frontend
+  tag: "a67cf1b"
+  pullPolicy: IfNotPresent
+
+host: spravki.sesc-it-team.ru
+tlsSecretName: spravki-frontend-tls
+
+port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 128Mi
