@@ -59,7 +59,9 @@ server:
   ingress:
     enabled: true
     ingressClassName: traefik
-    hostname: vault.sesc-it-team.ru
+    hosts:
+      - host: vault.sesc-it-team.ru
+        paths: []
     tls:
       - hosts:
           - vault.sesc-it-team.ru
