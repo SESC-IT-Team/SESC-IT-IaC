@@ -36,3 +36,5 @@ Thumbs.db
 logs/
 
 certs/
+
+**/charts/*.tgz

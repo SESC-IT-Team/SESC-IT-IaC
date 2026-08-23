@@ -9,7 +9,7 @@
 | Компонент              | Namespace   | Источник (git)                                      | Комментарий                                     |
 |------------------------|-------------|-----------------------------------------------------|-------------------------------------------------|
 | K3s                    | -           | [ansible/roles/k3s_setup](../ansible/roles/k3s_setup) | single-node, ставится через ansible             |
-| cert-manager           | `cert-manager` | [argocd/bootstrap/cluster-issuer.yaml](../argocd/bootstrap/cluster-issuer.yaml) | выпускает TLS-сертификаты LetsEncrypt           |
+| cert-manager           | `cert-manager` | [argocd/bootstrap/cluster-issuer.yaml](../argocd/bootstrap/cluster-issuer.yaml) | выпускает TLS-сертификаты внутреннего CA         |
 | Private registry       | `registry`  | [apps/registry](../apps/registry)                   | helm-chart, управляется ArgoCD                  |
 | ArgoCD                 | `argocd`    | [argocd/values.yaml](../argocd/values.yaml)         | helm-release `argocd/argo-cd`                   |
 | GitOps root app        | `argocd`    | [argocd/bootstrap/root-app.yaml](../argocd/bootstrap/root-app.yaml) | app-of-apps (сканирует `argocd/apps/`) |
@@ -77,8 +77,8 @@ ansible-playbook -i inventories/local.yml playbooks/k3s-server.yml
 3. Устанавливается K3s и Helm.
 4. Копируется kubeconfig в `/home/root/.kube/config`.
 5. Клонируется этот репозиторий в `/opt/apps/SESC-IT-IaC`.
-6. Добавляется helm-репозиторий `argo`, затем ставится **cert-manager** (jetstack) и применяется LetsEncrypt `ClusterIssuer` — это нужно, чтобы Ingress ArgoCD сразу получил настоящий TLS-сертификат.
-7. Ставится ArgoCD с values из `argocd/values.yaml` (Ingress содержит annotation `cert-manager.io/cluster-issuer: letsencrypt-prod`).
+6. Добавляются helm-репозитории и ставится **cert-manager** (jetstack).
+7. Применяется цепочка `selfsigned-bootstrap` → `sesc-internal-ca` → `sesc-internal-issuer`, после чего устанавливается ArgoCD с internal TLS.
 8. Применяются `argocd/bootstrap/project.yaml` и `argocd/bootstrap/root-app.yaml` (app-of-apps).
 
 После этого ArgoCD сам поднимает registry: root-app сканирует `argocd/apps/`, находит `registry.yaml` и разворачивает helm-чарт из `apps/registry/` в namespace `registry`.
@@ -111,7 +111,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 kubectl -n argocd delete secret argocd-initial-admin-secret
 ```
 
-TLS: сертификат от **LetsEncrypt** выпускается автоматически через cert-manager (см. раздел 7). В браузере исключение принимать не нужно — соединение доверенное.
+TLS: сертификат выпускается автоматически через cert-manager и внутренний CA (см. раздел 7). Перед первым открытием UI установите корневой CA на клиентское устройство.
 
 ---
 
@@ -266,46 +266,45 @@ argocd app rollback registry <revision-id>
 
 ---
 
-## 7. TLS для argocd.sesc-it-team.ru
+## 7. TLS и внутренний CA
 
-TLS выпускается **автоматически** через cert-manager + LetsEncrypt на этапе bootstrap. Конфигурация:
+TLS для ArgoCD и приложений выпускается автоматически через cert-manager и внутренний CA на этапе bootstrap. Конфигурация:
 
-- **cert-manager** (helm-release в namespace `cert-manager`, chart `jetstack/cert-manager`) — ставится плейбуком `k3s-server.yml` до установки ArgoCD. Переменная версии: `cert_manager_chart_version` в [ansible/inventories/group_vars/all.yml](../ansible/inventories/group_vars/all.yml).
-- **ClusterIssuer `letsencrypt-prod`** — определён в [argocd/bootstrap/cluster-issuer.yaml](../argocd/bootstrap/cluster-issuer.yaml), применяется ansible-ролью `k3s_setup` через `kubernetes.core.k8s`. Email и ACME-сервер берутся из переменных `letsencrypt_email` / `letsencrypt_server`.
+- **cert-manager** (helm-release в namespace `cert-manager`, chart `jetstack/cert-manager`) — ставится плейбуком `k3s-server.yml` до применения issuer-ресурсов. Переменная версии: `cert_manager_chart_version` в [ansible/inventories/group_vars/all.yml](../ansible/inventories/group_vars/all.yml).
+- **ClusterIssuer `selfsigned-bootstrap`** — временный issuer для выпуска корневого CA.
+- **Certificate `sesc-internal-ca`** — корневой CA в Secret `cert-manager/sesc-internal-ca-secret`.
+- **ClusterIssuer `sesc-internal-issuer`** — основной issuer для сертификатов ArgoCD и приложений.
 - **Ingress ArgoCD** в [argocd/values.yaml](../argocd/values.yaml) несёт annotations:
-  - `cert-manager.io/cluster-issuer: letsencrypt-prod`
-  - `acme.cert-manager.io/http01-edit-in-place: "true"`
+  - `cert-manager.io/cluster-issuer: sesc-internal-issuer`
   - `tlsSecretName: argocd-server-tls`
 
 Выпуск сертификата можно проверить:
 
 ```bash
-kubectl get certificate -n argocd
-kubectl describe certificate argocd-server-tls -n argocd
-kubectl get clusterissuer letsencrypt-prod -o wide
-kubectl get challenges -A
+kubectl get clusterissuer selfsigned-bootstrap sesc-internal-issuer
+kubectl get certificate -A
+kubectl get secret -n cert-manager sesc-internal-ca-secret
+kubectl describe certificate -n argocd argocd-server-tls
 ```
 
-Статус `READY=True` у `Certificate` означает, что Secret `argocd-server-tls` заполнен валидным сертификатом и Traefik отдаёт HTTPS без self-signed-предупреждений.
+Статус `READY=True` у `Certificate` означает, что соответствующий TLS Secret заполнен сертификатом и Traefik отдаёт HTTPS. Сертификат должен содержать hostname приложения в SAN.
+
+### Установка доверия к CA
+
+Получить корневой сертификат можно с кластера:
+
+```bash
+kubectl -n cert-manager get secret sesc-internal-ca-secret \
+  -o jsonpath='{.data.ca\.crt}' | base64 --decode > sesc-internal-ca.crt
+```
+
+Установите `sesc-internal-ca.crt` в доверенные корневые сертификаты клиентских устройств. На macOS это можно сделать через Keychain Access, добавив сертификат в `System` или `login` keychain и выставив для него `Always Trust`. На Linux добавьте файл в системный каталог CA и выполните команду обновления доверия, например `sudo update-ca-certificates` в Debian/Ubuntu. В Windows импортируйте файл в `Trusted Root Certification Authorities`. Для корпоративных устройств предпочтительно распространить CA через MDM/GPO.
 
 ### Перевыпуск / смена конфигурации
 
-- Поменять email LetsEncrypt или ACME-сервер → отредактировать переменные `letsencrypt_email`/`letsencrypt_server` в [ansible/inventories/group_vars/all.yml](../ansible/inventories/group_vars/all.yml) и синхронно обновить значения в [argocd/bootstrap/cluster-issuer.yaml](../argocd/bootstrap/cluster-issuer.yaml), затем перезапустить плейбук.
-- Для тестирования использовать staging-сервер LetsEncrypt: `https://acme-staging-v02.api.letsencrypt.org/directory` (сертификаты не доверенные, но без rate-limit).
-
-### Альтернатива (dev/test): self-signed или mkcert
-
-Если LetsEncrypt недоступен (например, локальный стендин без публичного DNS), можно вручную положить сертификат в Secret:
-
-```bash
-mkcert -install
-mkcert argocd.sesc-it-team.ru
-kubectl -n argocd create secret tls argocd-server-tls \
-  --cert=argocd.sesc-it-team.ru.pem \
-  --key=argocd.sesc-it-team.ru-key.pem
-```
-
-В этом случае annotation `cert-manager.io/cluster-issuer` с Ingress нужно убрать.
+- Внутренний CA хранится в Secret `cert-manager/sesc-internal-ca-secret`; не удаляйте этот Secret без понимания последствий.
+- `letsencrypt-prod` сохраняется в Ansible как opt-in fallback. Чтобы использовать его для конкретного Ingress, замените annotation на `cert-manager.io/cluster-issuer: letsencrypt-prod` и добавьте настройки HTTP-01.
+- Для тестирования fallback можно использовать staging-сервер LetsEncrypt: `https://acme-staging-v02.api.letsencrypt.org/directory`.
 
 ---
 

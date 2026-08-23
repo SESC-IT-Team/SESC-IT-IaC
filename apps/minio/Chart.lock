@@ -1,0 +1,6 @@
+dependencies:
+- name: cluster
+  repository: file://../../charts/cluster
+  version: 1.0.0
+digest: sha256:085aaf912758fb97a0d257f636f878d194b6a3ea7e7f6f83d5472480e6d965b2
+generated: "2026-08-20T13:51:14.987171+05:00"

@@ -199,6 +199,29 @@
   environment:
     GODEBUG: http2client=0
 
+- name: Apply internal self-signed CA and ClusterIssuer
+  kubernetes.core.k8s:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    src: "{{ iac_dir }}/argocd/bootstrap/cluster-issuer.yaml"
+    state: present
+    wait: true
+    wait_timeout: 180
+  environment:
+    GODEBUG: http2client=0
+
+- name: Wait for internal CA certificate to become ready
+  ansible.builtin.shell: >
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+    wait --for=condition=Ready certificate/sesc-internal-ca
+    -n cert-manager --timeout=180s
+  changed_when: false
+
+- name: Wait for internal ClusterIssuer to become ready
+  ansible.builtin.shell: >
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+    wait --for=condition=Ready clusterissuer/sesc-internal-issuer --timeout=180s
+  changed_when: false
+
 - name: Apply LetsEncrypt ClusterIssuer
   kubernetes.core.k8s:
     kubeconfig: /etc/rancher/k3s/k3s.yaml

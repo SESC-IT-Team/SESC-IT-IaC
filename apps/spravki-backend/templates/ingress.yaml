@@ -4,9 +4,8 @@ metadata:
   name: spravki-backend
   namespace: {{ .Values.namespace }}
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: sesc-internal-issuer
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
-    acme.cert-manager.io/http01-edit-in-place: "true"
 spec:
   ingressClassName: traefik
   tls:

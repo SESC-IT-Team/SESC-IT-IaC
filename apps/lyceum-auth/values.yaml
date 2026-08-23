@@ -47,8 +47,9 @@ authentikHostPrefix: auth
 certificate:
   enabled: true
   issuerRef:
-    name: sesc-internal-issuer  # <-- Меняем здесь
+    name: sesc-internal-issuer
     kind: ClusterIssuer
+    group: cert-manager.io
   secretName: lyceum-auth-tls
   duration: 2160h
   renewBefore: 360h
