@@ -14,8 +14,8 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: lyceum-auth-admin-frontend
         {{- include "lyceum-auth-admin.labels" . | nindent 8 }}
+        app.kubernetes.io/name: lyceum-auth-admin-frontend
     spec:
       containers:
         - name: frontend

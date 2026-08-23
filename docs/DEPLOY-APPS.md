@@ -31,6 +31,20 @@ ArgoCD Applications: `argocd/apps/*.yaml`, sync-wave `1` — инфрастру�
 
 Добавить в Vault (UI: `https://vault.<baseDomain>`, движок `kv`, секреты в `apps/*`):
 
+Для массового импорта используйте токен с политикой из [vault-importer-policy.hcl](vault-importer-policy.hcl). Политику нужно применить администраторским токеном один раз:
+
+```bash
+export VAULT_SKIP_VERIFY=true
+vault policy write vault-importer docs/vault-importer-policy.hcl
+vault policy read vault-importer
+vault token create -policy=vault-importer
+VAULT_TOKEN=<полученный-токен> ./docs/import-vault-secrets.sh
+```
+
+If the token was already created before `vault policy write` succeeded, create a new token after verifying the policy. Revoke the old token because it was exposed in terminal output or chat.
+
+`vault kv put` проверяет доступ к `kv/metadata/apps/*` перед записью. Поэтому токен только с доступом к `kv/data/apps/*` завершится ошибкой `preflight capability check returned 403`.
+
 | Path | Ключ | Значение |
 |---|---|---|
 | `apps/spravki-backend` | `POSTGRES_PASSWORD` | пароль postgres для spravki |
@@ -83,6 +97,21 @@ Containerd K3s тянет образы **без TLS и без auth** через 
 docker login reg.<baseDomain>   # только после включения auth.enabled: true
 docker build --platform linux/amd64 -t reg.<baseDomain>/<app>:<sha> .
 docker push reg.<baseDomain>/<app>:<sha>
+```
+
+Если registry использует self-signed сертификат, добавьте его домен в Docker Desktop:
+`Settings` -> `Docker Engine` -> `insecure-registries`, например:
+
+```json
+{
+	"insecure-registries": ["reg.<baseDomain>"]
+}
+```
+
+После перезапуска Docker Desktop запустите сборщик с флагом `--insecure`:
+
+```bash
+./docs/build-and-push-images.sh --insecure reg.<baseDomain>
 ```
 
 В values.yaml репозиторий образа — короткое имя (`spravki-frontend`); шаблон подставляет `reg.<baseDomain>/` через `cluster.privateImage`.
