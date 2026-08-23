@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lyceum-auth-admin
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "lyceum-auth-admin.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix) | quote }}
+        - {{ include "lyceum-auth-admin.apiFqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix) | quote }}
+      secretName: {{ .Values.tlsSecretName }}
+  rules:
+    - host: {{ include "lyceum-auth-admin.apiFqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix) | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lyceum-auth-admin-backend
+                port:
+                  name: http
+    - host: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix) | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lyceum-auth-admin-frontend
+                port:
+                  name: http

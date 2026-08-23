@@ -1,0 +1,67 @@
+namespace: lyceum-auth-admin
+
+frontendHostPrefix: admin
+tlsSecretName: lyceum-auth-admin-tls
+
+frontend:
+  image:
+    repository: lyceum-auth-admin-frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 4173
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+backend:
+  image:
+    repository: lyceum-auth-admin-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 5000
+  healthPath: /api/health
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+externalSecret:
+  enabled: true
+  name: lyceum-auth-admin-secrets
+  refreshInterval: 1h
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  remoteRef:
+    key: apps/lyceum-auth-admin
+  # Keys are intentionally configurable: Vault remains the source of secret values.
+  data:
+    - secretKey: ALLOWED_ISSUERS
+      property: ALLOWED_ISSUERS
+    - secretKey: AUTHENTIK_URL
+      property: AUTHENTIK_URL
+    - secretKey: APPLICATION_SLUG
+      property: APPLICATION_SLUG
+    - secretKey: CLIENT_ID
+      property: CLIENT_ID
+    - secretKey: CLIENT_SECRET
+      property: CLIENT_SECRET
+    - secretKey: LOGIN_REDIRECT_URI
+      property: LOGIN_REDIRECT_URI
+    - secretKey: COOKIE_SECURE
+      property: COOKIE_SECURE
+    - secretKey: ROUTER_PATH
+      property: ROUTER_PATH
+    - secretKey: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
+      property: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
+    - secretKey: SEND_ACCESS_TOKEN_AS_COOKIE
+      property: SEND_ACCESS_TOKEN_AS_COOKIE
+    - secretKey: USER_SERVICE_URL
+      property: USER_SERVICE_URL

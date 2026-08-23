@@ -5,7 +5,7 @@ image:
   tag: "4c8bcca"
   pullPolicy: IfNotPresent
 
-hostPrefix: api.spravki
+hostPrefix: spravki
 tlsSecretName: spravki-backend-tls
 
 port: 8000

@@ -5,7 +5,7 @@ image:
   tag: "d91b55e"
   pullPolicy: IfNotPresent
 
-hostPrefix: api.support
+hostPrefix: support
 tlsSecretName: technical-support-backend-tls
 
 port: 8123
