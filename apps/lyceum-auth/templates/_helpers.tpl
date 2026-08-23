@@ -44,6 +44,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) -}}
 {{- end }}
 
+{{- define "lyceum-auth.apiHost" -}}
+{{- printf "api.%s" (include "lyceum-auth.host" .) -}}
+{{- end }}
+
 {{- define "lyceum-auth.authentikUrl" -}}
 {{- include "cluster.url" (dict "ctx" . "prefix" .Values.authentikHostPrefix) -}}
 {{- end }}

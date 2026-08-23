@@ -10,10 +10,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+      - {{ printf "api.%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix)) | quote }}
       secretName: {{ .Values.tlsSecretName }}
   rules:
-    - host: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+    - host: {{ printf "api.%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix)) | quote }}
       http:
         paths:
           - path: /

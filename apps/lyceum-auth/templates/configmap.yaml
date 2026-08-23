@@ -16,7 +16,7 @@ data:
 
   ADMIN_LOGIN: {{ .Values.config.adminLogin | quote }}
 
-  DOMAIN: {{ include "lyceum-auth.host" . | quote }}
+  DOMAIN: {{ include "lyceum-auth.apiHost" . | quote }}
   AUTHENTIK_URL: {{ include "lyceum-auth.authentikUrl" . | quote }}
   ALLOWED_ISSUERS: {{ include "lyceum-auth.allowedIssuers" . | quote }}
   USERS_PATH: {{ .Values.config.usersPath | quote }}

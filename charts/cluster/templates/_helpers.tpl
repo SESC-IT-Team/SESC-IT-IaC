@@ -19,8 +19,16 @@
 {{- printf "%s.%s" .prefix (include "cluster.baseDomain" .ctx) -}}
 {{- end }}
 
+{{- define "cluster.apiFqdn" -}}
+{{- include "cluster.fqdn" (dict "ctx" .ctx "prefix" (printf "api.%s" .prefix)) -}}
+{{- end }}
+
 {{- define "cluster.url" -}}
 {{- printf "https://%s.%s" .prefix (include "cluster.baseDomain" .ctx) -}}
+{{- end }}
+
+{{- define "cluster.apiUrl" -}}
+{{- printf "https://%s" (include "cluster.apiFqdn" .) -}}
 {{- end }}
 
 {{- define "cluster.privateImage" -}}
