@@ -1,0 +1,12 @@
+apiVersion: v2
+name: sesc-portal
+description: SESC portal (FastAPI) with PostgreSQL.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: SESC-IT
+dependencies:
+  - name: cluster
+    version: 1.0.0
+    repository: "file://../../charts/cluster"

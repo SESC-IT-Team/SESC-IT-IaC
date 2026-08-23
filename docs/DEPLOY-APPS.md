@@ -1,4 +1,4 @@
-# Деплой приложений через ArgoCD: Spravki, Technical Support, Document Renderer
+# Деплой приложений через ArgoCD: Spravki, Technical Support, SESC Portal, Document Renderer
 
 Манифесты всех приложений живут в этом репозитории (GitOps). DNS-зона кластера — `global.baseDomain` в [charts/cluster/values.yaml](../charts/cluster/values.yaml). Образы — в приватном registry `reg.<baseDomain>` (внутри кластера containerd тянет их через mirror `http://127.0.0.1:5000`).
 
@@ -11,6 +11,7 @@
 | Spravki Frontend | `apps/spravki-frontend/` | `spravki` | `spravki.<baseDomain>` | 80 |
 | Spravki Backend | `apps/spravki-backend/` | `spravki` | `api.spravki.<baseDomain>` | 8000 |
 | Technical Support Backend | `apps/technical-support-backend/` | `technical-support` | `api.support.<baseDomain>` | 8123 |
+| SESC Portal | `apps/sesc-portal/` | `sesc-portal` | `portal.<baseDomain>` | 8000 |
 | Document Renderer | `apps/document-renderer/` | `document-renderer` | — (taskiq worker) | — |
 | RabbitMQ | `apps/rabbitmq/` | `rabbitmq` | — (ClusterIP) | 5672 |
 | Redis | `apps/redis/` | `redis` | — (ClusterIP) | 6379 |
@@ -34,6 +35,9 @@ ArgoCD Applications: `argocd/apps/*.yaml`, sync-wave `1` — инфрастру�
 |---|---|---|
 | `apps/spravki-backend` | `POSTGRES_PASSWORD` | пароль postgres для spravki |
 | `apps/technical-support-backend` | `POSTGRES_PASSWORD` | пароль postgres для TS |
+| `apps/sesc-portal` | `POSTGRES_PASSWORD` | пароль postgres для SESC Portal |
+| `apps/sesc-portal` | `DATABASE_URL` | `postgresql+psycopg://sesc:<password>@sesc-portal-postgres:5432/sesc` |
+| `apps/sesc-portal` | `SECRET_KEY` | случайный секрет для сессий приложения |
 | `apps/rabbitmq` | `RABBITMQ_USER` | имя пользователя (не `guest`) |
 | `apps/rabbitmq` | `RABBITMQ_PASSWORD` | пароль RabbitMQ |
 | `apps/rabbitmq` | `RABBITMQ_ERLANG_COOKIE` | случайная строка (например, `openssl rand -hex 16`) |
@@ -55,6 +59,7 @@ A-записи → `212.113.98.188`:
 spravki.<baseDomain>
 api.spravki.<baseDomain>
 api.support.<baseDomain>
+portal.<baseDomain>
 s3.<baseDomain>
 minio.<baseDomain>
 vault.<baseDomain>
@@ -91,6 +96,7 @@ docker push reg.<baseDomain>/<app>:<sha>
 | `reg.<baseDomain>/spravki-frontend` | `a67cf1b` |
 | `reg.<baseDomain>/spravki-backend` | `4c8bcca` |
 | `reg.<baseDomain>/technical-support-backend` | `d91b55e` |
+| `reg.<baseDomain>/sesc-portal` | `<git sha>` |
 | `reg.<baseDomain>/document-renderer` | `4e155d2` |
 
 Обновление:
@@ -104,10 +110,11 @@ docker push reg.<baseDomain>/<app>:$(git rev-parse --short HEAD)
 
 ## 5. Порядок деплоя (первый раз)
 
-1. Внести секреты в Vault (таблица выше).
-2. Настроить DNS.
-3. Запустить ansible-playbook на сервере (обновит registries.yaml, рестарт k3s).
-4. Commit + push этого репозитория — root-app подхватит новые Applications в `argocd/apps/`.
+1. Собрать и отправить `sesc-portal` в registry, затем указать его git SHA в `apps/sesc-portal/values.yaml`.
+2. Внести секреты в Vault (таблица выше).
+3. Настроить DNS.
+4. Запустить ansible-playbook на сервере (обновит registries.yaml, рестарт k3s).
+5. Commit + push этого репозитория — root-app подхватит `argocd/apps/sesc-portal.yaml`.
 
 ## 6. Известные нюансы
 

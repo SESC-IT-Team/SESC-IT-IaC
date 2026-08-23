@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sesc-portal
+  namespace: {{ .Values.namespace }}
+  annotations:
+    cert-manager.io/cluster-issuer: sesc-internal-issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+      secretName: {{ .Values.tlsSecretName }}
+  rules:
+    - host: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sesc-portal
+                port:
+                  number: {{ .Values.port }}

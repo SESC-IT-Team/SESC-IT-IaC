@@ -1,0 +1,27 @@
+# ArgoCD Application: SESC portal.
+# Source: apps/sesc-portal/ (Helm chart in this repo).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sesc-portal
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
+    targetRevision: HEAD
+    path: apps/sesc-portal
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sesc-portal
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

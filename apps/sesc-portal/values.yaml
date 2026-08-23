@@ -1,0 +1,26 @@
+namespace: sesc-portal
+
+image:
+  repository: sesc-portal
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+hostPrefix: portal
+tlsSecretName: sesc-portal-tls
+
+port: 8000
+
+postgres:
+  image: postgres:16-alpine
+  database: sesc
+  user: sesc
+  storage:
+    size: 5Gi
+    storageClass: local-path
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

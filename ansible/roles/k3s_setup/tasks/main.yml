@@ -9,6 +9,31 @@
     registry_domain: "reg.{{ cluster_config.global.baseDomain }}"
     argocd_domain: "argocd.{{ cluster_config.global.baseDomain }}"
 
+- name: Install base packages on Debian/Ubuntu
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - fish
+      - git
+      - mc
+      - python3-pip
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Install base packages on RedHat family
+  ansible.builtin.yum:
+    name:
+      - ca-certificates
+      - curl
+      - fish
+      - git
+      - mc
+      - python3-pip
+    state: present
+  when: ansible_os_family == "RedHat"
+
 - name: Create Registry data directory
   ansible.builtin.file:
     path: "{{ registry_data_dir }}"

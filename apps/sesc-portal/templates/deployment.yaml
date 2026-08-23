@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sesc-portal
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: sesc-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sesc-portal
+  template:
+    metadata:
+      labels:
+        app: sesc-portal
+    spec:
+      containers:
+        - name: sesc-portal
+          image: {{ include "cluster.privateImage" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.port }}
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: sesc-portal-secrets
+                  key: DATABASE_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sesc-portal-secrets
+                  key: SECRET_KEY
+            - name: AUTH_BASE_URL
+              value: {{ printf "https://%s" (include "cluster.fqdn" (dict "ctx" . "prefix" "auth")) | quote }}
+            - name: AUTO_CREATE_DB
+              value: "false"
+          volumeMounts:
+            - name: app-data
+              mountPath: /app/var
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: app-data
+          emptyDir: {}

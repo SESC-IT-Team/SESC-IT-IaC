@@ -1,31 +1,31 @@
-   apiVersion: cert-manager.io/v1
-   kind: ClusterIssuer
-   metadata:
-     name: selfsigned-bootstrap
-   spec:
-     selfSigned: {}
-   ---
-   apiVersion: cert-manager.io/v1
-   kind: Certificate
-   metadata:
-     name: sesc-internal-ca
-     namespace: cert-manager # Секрет CA будет создан здесь
-   spec:
-     isCA: true
-     commonName: "SESC Internal Root CA"
-     secretName: sesc-internal-ca-secret
-     privateKey:
-       algorithm: ECDSA
-       size: 256
-     issuerRef:
-       name: selfsigned-bootstrap
-       kind: ClusterIssuer
-       group: cert-manager.io
-   ---
-   apiVersion: cert-manager.io/v1
-   kind: ClusterIssuer
-   metadata:
-     name: sesc-internal-issuer
-   spec:
-     ca:
-       secretName: sesc-internal-ca-secret
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-bootstrap
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: sesc-internal-ca
+  namespace: cert-manager # Секрет CA будет создан здесь
+spec:
+  isCA: true
+  commonName: "SESC Internal Root CA"
+  secretName: sesc-internal-ca-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-bootstrap
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: sesc-internal-issuer
+spec:
+  ca:
+    secretName: sesc-internal-ca-secret
