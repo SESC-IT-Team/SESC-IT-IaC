@@ -20,7 +20,7 @@ spec:
         - name: minio
           image: {{ .Values.image | quote }}
           imagePullPolicy: IfNotPresent
-          command:
+          args:
             - server
             - /data
             - --console-address
