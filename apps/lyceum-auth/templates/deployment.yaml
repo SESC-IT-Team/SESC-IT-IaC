@@ -37,13 +37,13 @@ spec:
               protocol: TCP
           env:
             - name: POSTGRES_HOST
-              value: {{ .Values.postgres.host | quote }}
+              value: {{ .Values.config.postgres.host | quote }}
             - name: POSTGRES_PORT
-              value: {{ .Values.postgres.port | quote }}
+              value: {{ .Values.config.postgres.port | quote }}
             - name: POSTGRES_DB
-              value: {{ .Values.postgres.database | quote }}
+              value: {{ .Values.config.postgres.database | quote }}
             - name: POSTGRES_USER
-              value: {{ .Values.postgres.user | quote }}
+              value: {{ .Values.config.postgres.user | quote }}
             - name: ROOT_PATH
               value: "/"
             - name: USERS_PATH
@@ -82,6 +82,7 @@ spec:
             periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
             failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
