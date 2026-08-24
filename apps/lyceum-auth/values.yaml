@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/sesc-it-team/lyceum-auth-backend
+  repository: lyceum-auth-backend
   tag: "5fc4947"
   pullPolicy: IfNotPresent
 

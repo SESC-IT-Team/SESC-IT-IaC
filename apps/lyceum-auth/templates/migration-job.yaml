@@ -20,7 +20,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: migration
-          image: {{ include "lyceum-auth.image" . | quote }}
+          image: {{ include "cluster.privateImage" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - bash
