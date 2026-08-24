@@ -6,7 +6,7 @@ tlsSecretName: lyceum-auth-admin-tls
 frontend:
   image:
     repository: lyceum-auth-admin-frontend
-    tag: "latest"
+    tag: "6c3fdee"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 4173
@@ -20,7 +20,7 @@ frontend:
 backend:
   image:
     repository: lyceum-auth-admin-backend
-    tag: "latest"
+    tag: "c1e6ba1"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 5000

@@ -2,7 +2,7 @@ namespace: sesc-portal
 
 image:
   repository: sesc-portal
-  tag: "latest"
+  tag: "1940c36"
   pullPolicy: IfNotPresent
 
 hostPrefix: portal

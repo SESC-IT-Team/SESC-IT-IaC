@@ -2,7 +2,7 @@ namespace: technical-support
 
 image:
   repository: technical-support-backend
-  tag: "d91b55e"
+  tag: "9d793a4"
   pullPolicy: IfNotPresent
 
 hostPrefix: support
