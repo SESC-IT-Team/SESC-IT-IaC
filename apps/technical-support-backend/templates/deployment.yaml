@@ -22,7 +22,7 @@ spec:
           command:
             - sh
             - -c
-            - alembic upgrade head && uv run python -m src.main
+            - uv run alembic upgrade head && uv run python -m src.main
           ports:
             - name: http
               containerPort: {{ .Values.port }}
