@@ -42,9 +42,9 @@ spec:
                   name: minio-secrets
                   key: MINIO_ROOT_PASSWORD
             - name: MINIO_SERVER_URL
-              value: https://{{ .Values.apiHost }}
+              value: https://{{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.apiHostPrefix) }}
             - name: MINIO_BROWSER_REDIRECT_URL
-              value: https://{{ .Values.consoleHost }}
+              value: https://{{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.consoleHostPrefix) }}
           volumeMounts:
             - name: data
               mountPath: /data
@@ -76,3 +76,6 @@ spec:
         resources:
           requests:
             storage: {{ .Values.storage.size | quote }}
+
+
+            
