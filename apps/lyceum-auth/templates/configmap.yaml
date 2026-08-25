@@ -19,4 +19,5 @@ data:
   DOMAIN: {{ include "lyceum-auth.apiHost" . | quote }}
   AUTHENTIK_URL: {{ include "lyceum-auth.authentikUrl" . | quote }}
   ALLOWED_ISSUERS: {{ include "lyceum-auth.allowedIssuers" . | quote }}
+  TOKEN_VALIDATION__ALLOWED_ISSUERS: {{ include "lyceum-auth.allowedIssuers" . | quote }}
   USERS_PATH: {{ .Values.config.usersPath | quote }}

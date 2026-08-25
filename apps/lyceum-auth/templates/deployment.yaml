@@ -49,6 +49,8 @@ spec:
             - name: USERS_PATH
               value: "users"
           envFrom:
+            - configMapRef:
+                name: {{ include "lyceum-auth.fullname" . }}-config
             - secretRef:
                 name: {{ .Values.externalSecret.targetSecretName }}
           volumeMounts:
