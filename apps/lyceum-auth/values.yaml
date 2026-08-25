@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: lyceum-auth-backend
-  tag: "5fc4947"
+  tag: "7f4b7b4"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
