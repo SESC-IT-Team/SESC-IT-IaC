@@ -24,6 +24,9 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.frontend.port }}
+          env:
+            - name: DOMAIN
+              value: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix) | quote }}
           readinessProbe:
             httpGet:
               path: /

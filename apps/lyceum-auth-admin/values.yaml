@@ -20,7 +20,7 @@ frontend:
 backend:
   image:
     repository: lyceum-auth-admin-backend
-    tag: "c6b518c-py314"
+    tag: "c6b518c-configfix"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 5000
