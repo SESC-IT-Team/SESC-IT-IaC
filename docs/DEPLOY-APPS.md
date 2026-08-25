@@ -64,6 +64,15 @@ If the token was already created before `vault policy write` succeeded, create a
 | `apps/registry` | `REGISTRY_PASSWORD` | тот же пароль |
 | `apps/authentik` | `SPRAVKI_REDIRECT_URI` | `https://api.spravki.<baseDomain>/auth/callback` |
 | `apps/authentik` | `TECHNICAL_SUPPORT_REDIRECT_URI` | `https://api.support.<baseDomain>/auth/callback` |
+| `apps/lyceum-auth` | `POSTGRES_PASSWORD` | пароль встроенной PostgreSQL для Lyceum Auth |
+| `apps/lyceum-auth` | `ADMIN_PASSWORD` | пароль пользователя `ADMIN_LOGIN` |
+| `apps/lyceum-auth` | `SA_AUTH_ADMIN_APP_API_TOKEN` | API-токен service account `auth-admin-app` из Authentik |
+
+Lyceum Auth должен получить Secret `lyceum-auth-secrets` из Vault-пути `apps/lyceum-auth` до запуска Deployment и migration Job. После заполнения значений импортируйте их через:
+
+```bash
+VAULT_TOKEN=<токен> ./docs/import-vault-secrets.sh <подготовленный-json-манифест>
+```
 
 ## 2. DNS
 

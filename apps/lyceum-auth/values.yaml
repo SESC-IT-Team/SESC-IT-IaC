@@ -21,6 +21,13 @@ externalSecret:
     key: apps/lyceum-auth
   targetSecretName: lyceum-auth-secrets
   refreshInterval: 1h
+  data:
+    - secretKey: POSTGRES_PASSWORD
+      property: POSTGRES_PASSWORD
+    - secretKey: ADMIN_PASSWORD
+      property: ADMIN_PASSWORD
+    - secretKey: SA_AUTH_ADMIN_APP_API_TOKEN
+      property: SA_AUTH_ADMIN_APP_API_TOKEN
 
 config:
   postgres:
