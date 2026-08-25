@@ -5,6 +5,33 @@
 #   - external access via https://reg.<baseDomain> (Traefik Ingress + LetsEncrypt)
 #   - basic auth (htpasswd) from Vault kv/apps/registry
 #   - containerd keeps pulling via hostPort mirror http://127.0.0.1:5000
+cleanup:
+  enabled: true
+  protectedTagPatterns:
+    - '^latest$'
+    - '^main$'
+    - '^master$'
+    - '^prod$'
+    - '^release-.*$'
+    - '^v[0-9]+(\.[0-9]+){0,2}$'
+
+  keepLast: 15
+  maxAgeDays: 30
+  schedule: "15 03 * * *"
+  garbageCollectSchedule: "30 03 * * *"
+  registryURL: http://registry:5000
+  kubectlImage: rancher/kubectl:v1.31.4
+  retentionImage: python:3.12-alpine
+  existingSecret: ""
+  usernameKey: username
+  passwordKey: password
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
 image:
   repository: registry
   tag: "3"
@@ -45,3 +72,14 @@ resources:
   limits:
     cpu: 500m
     memory: 512Mi
+
+# End of registry values.
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,82 @@
+{{- if .Values.cleanup.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: registry-cleanup
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: registry-cleanup
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: registry-cleanup
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: registry-cleanup
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: registry-cleanup
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: registry-gc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: registry
+    app.kubernetes.io/component: garbage-collector
+spec:
+  schedule: {{ .Values.cleanup.garbageCollectSchedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: registry-gc
+        spec:
+          restartPolicy: Never
+          serviceAccountName: registry-cleanup
+          containers:
+            - name: garbage-collect
+              image: {{ .Values.cleanup.kubectlImage | quote }}
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  restore() {
+                    kubectl -n {{ .Release.Namespace }} set env deployment/registry REGISTRY_MAINTENANCE_READONLY_ENABLED- || true
+                    kubectl -n {{ .Release.Namespace }} rollout status deployment/registry --timeout=5m || true
+                  }
+                  trap restore EXIT
+                  kubectl -n {{ .Release.Namespace }} set env deployment/registry REGISTRY_MAINTENANCE_READONLY_ENABLED=true
+                  kubectl -n {{ .Release.Namespace }} rollout status deployment/registry --timeout=5m
+                  pod=$(kubectl -n {{ .Release.Namespace }} get pod -l app=registry -o jsonpath='{.items[0].metadata.name}')
+                  test -n "$pod"
+                  kubectl -n {{ .Release.Namespace }} exec "$pod" -- /bin/registry garbage-collect --delete-untagged /etc/docker/registry/config.yml
+              resources:
+{{ toYaml .Values.cleanup.resources | nindent 16 }}
+{{- end }}

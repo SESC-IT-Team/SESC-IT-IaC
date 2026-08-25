@@ -1,0 +1,82 @@
+{{- if .Values.cleanup.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-retention
+  namespace: {{ .Release.Namespace }}
+data:
+  retention.py: |
+    import base64
+    import json
+    import os
+    import re
+    import ssl
+    import sys
+    from datetime import datetime, timedelta, timezone
+    from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
+
+    base_url = os.environ["REGISTRY_URL"].rstrip("/")
+    patterns = [re.compile(value) for value in json.loads(os.environ["PROTECTED_TAG_PATTERNS"])]
+    keep_last = int(os.environ["KEEP_LAST"])
+    cutoff = datetime.now(timezone.utc) - timedelta(days=int(os.environ["MAX_AGE_DAYS"]))
+    auth = None
+    if os.environ.get("REGISTRY_USERNAME") and os.environ.get("REGISTRY_PASSWORD"):
+        token = base64.b64encode((os.environ["REGISTRY_USERNAME"] + ":" + os.environ["REGISTRY_PASSWORD"]).encode()).decode()
+        auth = "Basic " + token
+
+    def request(path, method="GET", accept="application/json"):
+        headers = {"Accept": accept}
+        if auth:
+            headers["Authorization"] = auth
+        req = Request(base_url + path, headers=headers, method=method)
+        return urlopen(req, timeout=30)
+
+    def get_json(path, accept="application/json"):
+        with request(path, accept=accept) as response:
+            return json.load(response)
+
+    def created_at(repository, manifest):
+        try:
+            document = get_json(
+                "/v2/%s/manifests/%s" % (repository, manifest),
+                "application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json",
+            )
+            config = document.get("config", {}).get("digest")
+            if not config:
+                return None
+            blob = get_json("/v2/%s/blobs/%s" % (repository, config))
+            value = blob.get("created")
+            return datetime.fromisoformat(value.replace("Z", "+00:00")) if value else None
+        except (HTTPError, ValueError, KeyError, json.JSONDecodeError):
+            return None
+
+    def protected(tag):
+        return any(pattern.fullmatch(tag) for pattern in patterns)
+
+    catalog = get_json("/v2/_catalog?n=10000").get("repositories", [])
+    for repository in catalog:
+        tags = get_json("/v2/%s/tags/list" % repository).get("tags") or []
+        candidates = []
+        protected_digests = set()
+        for tag in tags:
+            try:
+                with request("/v2/%s/manifests/%s" % (repository, tag), method="HEAD", accept="application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json") as response:
+                    digest = response.headers.get("Docker-Content-Digest")
+                if protected(tag):
+                    protected_digests.add(digest)
+                else:
+                    candidates.append((tag, digest, created_at(repository, tag)))
+            except HTTPError as error:
+                print("skip %s:%s: %s" % (repository, tag, error), file=sys.stderr)
+        candidates.sort(key=lambda item: item[2] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+        for index, (tag, digest, created) in enumerate(candidates):
+            if digest in protected_digests or (index < keep_last and not (created and created < cutoff)):
+                continue
+            if index >= keep_last or (created and created < cutoff):
+                try:
+                    request("/v2/%s/manifests/%s" % (repository, digest), method="DELETE")
+                    print("deleted %s:%s" % (repository, tag))
+                except HTTPError as error:
+                    print("failed %s:%s: %s" % (repository, tag, error), file=sys.stderr)
+{{- end }}

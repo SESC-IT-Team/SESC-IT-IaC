@@ -1,0 +1,61 @@
+{{- if .Values.cleanup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: registry-retention
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: registry
+    app.kubernetes.io/component: retention
+spec:
+  schedule: {{ .Values.cleanup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: registry-retention
+        spec:
+          restartPolicy: Never
+          serviceAccountName: registry-cleanup
+          containers:
+            - name: retention
+              image: {{ .Values.cleanup.retentionImage | quote }}
+              imagePullPolicy: IfNotPresent
+              command: ["python", "/scripts/retention.py"]
+              env:
+                - name: REGISTRY_URL
+                  value: {{ .Values.cleanup.registryURL | quote }}
+                - name: PROTECTED_TAG_PATTERNS
+                  value: {{ .Values.cleanup.protectedTagPatterns | toJson | quote }}
+                - name: KEEP_LAST
+                  value: {{ .Values.cleanup.keepLast | quote }}
+                - name: MAX_AGE_DAYS
+                  value: {{ .Values.cleanup.maxAgeDays | quote }}
+                {{- if .Values.cleanup.existingSecret }}
+                - name: REGISTRY_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.cleanup.existingSecret }}
+                      key: {{ .Values.cleanup.usernameKey }}
+                - name: REGISTRY_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.cleanup.existingSecret }}
+                      key: {{ .Values.cleanup.passwordKey }}
+                {{- end }}
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+                  readOnly: true
+              resources:
+{{ toYaml .Values.cleanup.resources | nindent 16 }}
+          volumes:
+            - name: script
+              configMap:
+                name: registry-retention
+{{- end }}

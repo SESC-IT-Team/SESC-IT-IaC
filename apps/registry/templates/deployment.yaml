@@ -8,6 +8,8 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicas }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: registry
@@ -16,6 +18,12 @@ spec:
       labels:
         app: registry
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+
       {{- if .Values.hostNetwork }}
       hostNetwork: true
       dnsPolicy: {{ .Values.dnsPolicy }}
