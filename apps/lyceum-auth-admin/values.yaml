@@ -20,7 +20,7 @@ frontend:
 backend:
   image:
     repository: lyceum-auth-admin-backend
-    tag: "c1e6ba1"
+    tag: "7490102-py314"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 5000
