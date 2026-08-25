@@ -24,7 +24,7 @@ backend:
     pullPolicy: IfNotPresent
   replicas: 1
   port: 5000
-  healthPath: /api/health
+  healthPath: /health
   resources:
     requests:
       cpu: 100m
