@@ -2,3 +2,7 @@
 # Ansible (k3s_setup) and every app chart read global.baseDomain from here.
 global:
   baseDomain: sesc-it-team.ru
+  internalCA:
+    enabled: true
+    configMapName: sesc-internal-ca
+    mountPath: /etc/ssl/certs/sesc-internal-ca.crt

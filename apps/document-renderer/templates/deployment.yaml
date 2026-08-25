@@ -27,6 +27,7 @@ spec:
             - --log-level=INFO
             - src.tasks:broker
           env:
+            {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: RABBITMQ_HOST
               value: {{ .Values.rabbitmq.host | quote }}
             - name: RABBITMQ_PORT
@@ -44,5 +45,9 @@ spec:
           envFrom:
             - secretRef:
                 name: document-renderer-secrets
+          volumeMounts:
+            {{- include "cluster.internalCAMount" . | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}

@@ -27,6 +27,8 @@ spec:
             - -ec
             - |
               uv run --no-sync alembic upgrade head
+          env:
+            {{- include "cluster.internalCAEnv" . | nindent 12 }}
           envFrom:
             - configMapRef:
                 name: {{ include "lyceum-auth.fullname" . }}-config
@@ -34,4 +36,6 @@ spec:
                 name: {{ .Values.externalSecret.targetSecretName }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}
 {{- end }}

@@ -23,6 +23,7 @@ spec:
             - name: http
               containerPort: {{ .Values.port }}
           env:
+            {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: POSTGRES_HOST
               value: spravki-postgres
             - name: POSTGRES_PORT
@@ -33,6 +34,10 @@ spec:
               value: {{ .Values.postgres.database | quote }}
             - name: ROOT_PATH
               value: {{ .Values.rootPath | quote }}
+            - name: ALLOWED_ORIGINS
+              value: {{ list (include "cluster.url" (dict "ctx" . "prefix" .Values.hostPrefix)) | toJson | quote }}
+            - name: COOKIE_DOMAIN
+              value: {{ printf ".%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix)) | quote }}
             - name: AUTH_BASE_URL
               value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | quote }}
             - name: AUTHENTIK_URL
@@ -58,6 +63,8 @@ spec:
           envFrom:
             - secretRef:
                 name: spravki-backend-secrets
+          volumeMounts:
+            {{- include "cluster.internalCAMount" . | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /docs
@@ -68,3 +75,5 @@ spec:
             failureThreshold: 12
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}

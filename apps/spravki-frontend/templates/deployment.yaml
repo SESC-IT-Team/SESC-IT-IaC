@@ -22,6 +22,8 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.port }}
+          volumeMounts:
+            {{- include "cluster.internalCAMount" . | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /
@@ -32,3 +34,5 @@ spec:
             failureThreshold: 6
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}

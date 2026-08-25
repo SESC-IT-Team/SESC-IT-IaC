@@ -24,6 +24,8 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.backend.port }}
+          volumeMounts:
+            {{- include "cluster.internalCAMount" . | nindent 12 }}
           envFrom:
             {{- if .Values.externalSecret.enabled }}
             - secretRef:
@@ -39,6 +41,8 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
+      volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}
 ---
 apiVersion: v1
 kind: Service

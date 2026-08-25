@@ -27,6 +27,7 @@ spec:
             - name: http
               containerPort: {{ .Values.port }}
           env:
+            {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: POSTGRES_HOST
               value: technical-support-postgres
             - name: POSTGRES_PORT
@@ -42,6 +43,8 @@ spec:
           envFrom:
             - secretRef:
                 name: technical-support-backend-secrets
+          volumeMounts:
+            {{- include "cluster.internalCAMount" . | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /docs
@@ -52,3 +55,5 @@ spec:
             failureThreshold: 12
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}

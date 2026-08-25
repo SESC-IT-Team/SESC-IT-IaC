@@ -1,0 +1,13 @@
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: sesc-internal-ca
+spec:
+  sources:
+    - useDefaultCAs: true
+    - secret:
+        name: sesc-internal-ca-secret
+        key: ca.crt
+  target:
+    configMap:
+      key: ca.crt

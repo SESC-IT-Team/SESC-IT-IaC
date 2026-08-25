@@ -23,6 +23,7 @@ spec:
             - name: http
               containerPort: {{ .Values.port }}
           env:
+            {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -38,6 +39,7 @@ spec:
             - name: AUTO_CREATE_DB
               value: "false"
           volumeMounts:
+            {{- include "cluster.internalCAMount" . | nindent 12 }}
             - name: app-data
               mountPath: /app/var
           readinessProbe:
@@ -51,5 +53,6 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}
         - name: app-data
           emptyDir: {}

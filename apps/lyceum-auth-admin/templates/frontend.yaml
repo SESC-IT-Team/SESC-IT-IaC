@@ -25,6 +25,7 @@ spec:
             - name: http
               containerPort: {{ .Values.frontend.port }}
           env:
+            {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: DOMAIN
               value: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix) | quote }}
           readinessProbe:
@@ -37,6 +38,8 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
+      volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}
 ---
 apiVersion: v1
 kind: Service

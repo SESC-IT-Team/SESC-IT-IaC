@@ -25,6 +25,29 @@ ArgoCD Applications: `argocd/apps/*.yaml`, sync-wave `1` — инфрастру�
 
 Смена зоны — одно значение `global.baseDomain` в `charts/cluster/values.yaml`. Префиксы хостов задаются в values каждого чарта (`hostPrefix`).
 
+## Доверие к внутреннему CA из Pod
+
+Внутренний CA создаётся cert-manager в `cert-manager/sesc-internal-ca-secret`. ArgoCD устанавливает
+trust-manager (`argocd/apps/trust-manager.yaml`), а `argocd/apps/internal-ca-bundle.yaml` создаёт Bundle,
+который публикует объединённый bundle (публичные CA + `sesc-internal-ca`) как ConfigMap
+`sesc-internal-ca` во всех namespace.
+
+Основные backend/frontend/worker Deployment и migration Job монтируют этот ConfigMap в
+`/etc/ssl/certs/sesc-internal-ca.crt`. Для Python-клиентов также выставлены `SSL_CERT_FILE` и
+`REQUESTS_CA_BUNDLE`, поэтому обращения к внутренним HTTPS-адресам с сертификатами от
+`sesc-internal-issuer` проходят обычную проверку TLS.
+
+После первого применения дождитесь появления ConfigMap в нужном namespace:
+
+```bash
+kubectl -n spravki get configmap sesc-internal-ca
+kubectl -n spravki rollout restart deployment/spravki-backend
+```
+
+Не отключайте проверку сертификатов через `verify=False`, `NODE_TLS_REJECT_UNAUTHORIZED=0` или
+аналогичные параметры. Новое приложение должно подключить хелперы `cluster.internalCAMount` и
+`cluster.internalCAVolume`; для Python также используйте `cluster.internalCAEnv`.
+
 ---
 
 ## 1. Секреты в Vault (kv v2)
