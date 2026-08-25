@@ -39,10 +39,14 @@ spec:
               value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | quote }}
             - name: APPLICATION_SLUG
               value: {{ .Values.auth.applicationSlug | quote }}
+            - name: ALLOWED_ISSUERS
+              value: {{ .Values.auth.allowedIssuers | toJson | quote }}
             - name: LOGIN_REDIRECT_URI
               value: {{ printf "%s/auth/callback" (include "cluster.apiUrl" (dict "ctx" . "prefix" .Values.hostPrefix)) | quote }}
             - name: ROUTER_PATH
               value: {{ .Values.auth.routerPath | quote }}
+            - name: USER_SERVICE_URL
+              value: {{ .Values.userServiceUrl | quote }}
             - name: RABBITMQ_HOST
               value: {{ .Values.renderer.rabbitmqHost | quote }}
             - name: RABBITMQ_PORT
