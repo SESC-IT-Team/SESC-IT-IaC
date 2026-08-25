@@ -39,6 +39,11 @@ image:
 
 replicas: 1
 
+securityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsGroup: 1000
+
 # Keep the host binding so containerd (registries.yaml -> 127.0.0.1:5000) can pull
 # without auth and without leaving the host.
 hostNetwork: true
