@@ -62,7 +62,7 @@ If the token was already created before `vault policy write` succeeded, create a
 | `apps/registry` | `HTPASSWD` | строка `user:bcrypt-hash` — `htpasswd -Bbn <user> <pass>` |
 | `apps/registry` | `REGISTRY_USERNAME` | тот же user, для pull-секрета |
 | `apps/registry` | `REGISTRY_PASSWORD` | тот же пароль |
-| `apps/authentik` | `SPRAVKI_REDIRECT_URI` | `https://spravki.<baseDomain>/auth/callback` |
+| `apps/authentik` | `SPRAVKI_REDIRECT_URI` | `https://api.spravki.<baseDomain>/auth/callback` |
 | `apps/authentik` | `TECHNICAL_SUPPORT_REDIRECT_URI` | `https://api.support.<baseDomain>/auth/callback` |
 
 ## 2. DNS
