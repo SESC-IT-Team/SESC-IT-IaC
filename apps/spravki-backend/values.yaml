@@ -2,7 +2,7 @@ namespace: spravki
 
 image:
   repository: spravki-backend
-  tag: "fe7af29"
+  tag: "2bbfc9e"
   pullPolicy: IfNotPresent
 
 hostPrefix: spravki
