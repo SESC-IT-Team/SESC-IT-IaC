@@ -28,6 +28,10 @@ spec:
       hostNetwork: true
       dnsPolicy: {{ .Values.dnsPolicy }}
       {{- end }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
       containers:
         - name: registry
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
