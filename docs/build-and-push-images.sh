@@ -55,6 +55,7 @@ declare -a projects=(
   "document-renderer|/Users/reveek/PycharmProjects/SIT/Document-Renderer-Backend"
   "lyceum-auth-admin-frontend|/Users/reveek/WebstormProjects/Lyceum-Auth-Admin-Frontend"
   "lyceum-auth-admin-backend|/Users/reveek/Projects/SESC_IT/Lyceum-Auth-Admin-Backend"
+  "lyceum-auth-backend|/Users/reveek/SESC_IT/Lyceum-Auth-Backend"
   "sesc-portal|/Users/reveek/SESC_IT/serv"
   "spravki-backend|/Users/reveek/SESC_IT/Spravki-Backend"
   "spravki-frontend|/Users/reveek/WebstormProjects/Spravki-Frontend"
