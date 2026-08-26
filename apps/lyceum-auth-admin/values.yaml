@@ -13,7 +13,7 @@ frontend:
 
   image:
     repository: lyceum-auth-admin-frontend
-    tag: "d21301c"
+    tag: "468b262"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 4173
