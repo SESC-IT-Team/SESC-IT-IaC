@@ -1,6 +1,7 @@
 namespace: lyceum-auth-admin
 
 frontendHostPrefix: admin
+apiHostPrefix: admin
 tlsSecretName: lyceum-auth-admin-tls
 
 frontend:

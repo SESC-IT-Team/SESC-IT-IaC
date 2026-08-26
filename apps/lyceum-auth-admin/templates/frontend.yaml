@@ -31,7 +31,7 @@ spec:
             - name: VITE_DOMAIN
               value: {{ printf "https://%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
             - name: VITE_AUTH_DOMAIN
-              value: {{ printf "https://%s" (include "lyceum-auth-admin.apiFqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
+              value: {{ include "cluster.apiUrl" (dict "ctx" . "prefix" .Values.apiHostPrefix) | quote }}
             {{- range $name, $value := .Values.frontend.env }}
             - name: {{ $name }}
               value: {{ $value | quote }}
