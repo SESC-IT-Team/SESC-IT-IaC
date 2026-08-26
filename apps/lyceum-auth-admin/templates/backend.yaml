@@ -31,6 +31,8 @@ spec:
               value: {{ printf ".%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
             - name: COOKIE_SECURE
               value: "true"
+            - name: ROUTER_PATH
+              value: "/auth"
             - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
               value: "false"
             - name: SEND_ACCESS_TOKEN_AS_COOKIE
