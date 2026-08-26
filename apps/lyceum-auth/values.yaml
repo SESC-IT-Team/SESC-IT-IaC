@@ -1,5 +1,11 @@
 replicaCount: 1
 
+global:
+  internalCA:
+    enabled: true
+    configMapName: sesc-internal-ca
+    mountPath: /etc/ssl/certs/sesc-internal-ca.crt
+
 image:
   repository: lyceum-auth-backend
   tag: "7f4b7b4"
