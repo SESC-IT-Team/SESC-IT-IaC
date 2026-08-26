@@ -29,10 +29,20 @@ spec:
               value: {{ list (include "cluster.url" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | toJson | quote }}
             - name: COOKIE_DOMAIN
               value: {{ printf ".%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
+            - name: AUTHENTIK_URL
+              value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | quote }}
+            - name: APPLICATION_SLUG
+              value: {{ .Values.auth.applicationSlug | quote }}
+            - name: ALLOWED_ISSUERS
+              value: {{ list (printf "%s/application/o/%s/" (include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix)) .Values.auth.applicationSlug) | toJson | quote }}
+            - name: LOGIN_REDIRECT_URI
+              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
             - name: COOKIE_SECURE
               value: "true"
             - name: ROUTER_PATH
               value: "/auth"
+            - name: USER_SERVICE_URL
+              value: {{ include "cluster.apiUrl" (dict "ctx" . "prefix" "users") | quote }}
             - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
               value: "false"
             - name: SEND_ACCESS_TOKEN_AS_COOKIE

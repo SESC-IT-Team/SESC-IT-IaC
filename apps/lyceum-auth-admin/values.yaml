@@ -4,6 +4,10 @@ frontendHostPrefix: admin
 apiHostPrefix: admin
 tlsSecretName: lyceum-auth-admin-tls
 
+auth:
+  hostPrefix: auth
+  applicationSlug: auth-admin-app
+
 frontend:
   global:
     internalCA:
@@ -52,23 +56,8 @@ externalSecret:
     kind: ClusterSecretStore
   remoteRef:
     key: apps/lyceum-auth-admin
-  # Keys are intentionally configurable: Vault remains the source of secret values.
   data:
-    - secretKey: ALLOWED_ISSUERS
-      property: ALLOWED_ISSUERS
-    - secretKey: AUTHENTIK_URL
-      property: AUTHENTIK_URL
-    - secretKey: APPLICATION_SLUG
-      property: APPLICATION_SLUG
     - secretKey: CLIENT_ID
       property: CLIENT_ID
     - secretKey: CLIENT_SECRET
       property: CLIENT_SECRET
-    - secretKey: LOGIN_REDIRECT_URI
-      property: LOGIN_REDIRECT_URI
-    - secretKey: COOKIE_SECURE
-      property: COOKIE_SECURE
-    - secretKey: ROUTER_PATH
-      property: ROUTER_PATH
-    - secretKey: USER_SERVICE_URL
-      property: USER_SERVICE_URL
