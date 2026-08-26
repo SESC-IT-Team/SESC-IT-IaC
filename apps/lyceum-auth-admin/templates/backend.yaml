@@ -27,6 +27,8 @@ spec:
           env:
             - name: ALLOWED_ORIGINS
               value: {{ list (include "cluster.url" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | toJson | quote }}
+            - name: COOKIE_DOMAIN
+              value: {{ printf ".%s" (include "cluster.baseDomain" .) | quote }}
             - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
               value: "false"
             - name: SEND_ACCESS_TOKEN_AS_COOKIE
