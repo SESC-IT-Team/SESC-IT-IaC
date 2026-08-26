@@ -12,6 +12,7 @@ image:
   pullPolicy: IfNotPresent
 
 hostPrefix: spravki
+apiHostPrefix: spravki
 tlsSecretName: spravki-frontend-tls
 
 port: 80
