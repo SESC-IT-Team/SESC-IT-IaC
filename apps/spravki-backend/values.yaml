@@ -1,8 +1,14 @@
 namespace: spravki
 
+global:
+  internalCA:
+    enabled: true
+    configMapName: sesc-internal-ca
+    mountPath: /etc/ssl/certs/sesc-internal-ca.crt
+
 image:
   repository: spravki-backend
-  tag: "2bbfc9e"
+  tag: "1df392e"
   pullPolicy: IfNotPresent
 
 hostPrefix: spravki

@@ -1,8 +1,14 @@
 namespace: document-renderer
 
+global:
+  internalCA:
+    enabled: true
+    configMapName: sesc-internal-ca
+    mountPath: /etc/ssl/certs/sesc-internal-ca.crt
+
 image:
   repository: document-renderer
-  tag: "4e155d2"
+  tag: "f4ab7b4"
   pullPolicy: IfNotPresent
 
 rabbitmq:

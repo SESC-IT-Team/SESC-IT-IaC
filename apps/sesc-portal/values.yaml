@@ -1,8 +1,14 @@
 namespace: sesc-portal
 
+global:
+  internalCA:
+    enabled: true
+    configMapName: sesc-internal-ca
+    mountPath: /etc/ssl/certs/sesc-internal-ca.crt
+
 image:
   repository: sesc-portal
-  tag: "1940c36"
+  tag: "5e1d926"
   pullPolicy: IfNotPresent
 
 hostPrefix: portal

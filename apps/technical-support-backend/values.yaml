@@ -1,8 +1,14 @@
 namespace: technical-support
 
+global:
+  internalCA:
+    enabled: true
+    configMapName: sesc-internal-ca
+    mountPath: /etc/ssl/certs/sesc-internal-ca.crt
+
 image:
   repository: technical-support-backend
-  tag: "9d793a4"
+  tag: "6017dbb"
   pullPolicy: IfNotPresent
 
 hostPrefix: support

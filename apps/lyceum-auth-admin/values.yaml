@@ -4,6 +4,12 @@ frontendHostPrefix: admin
 tlsSecretName: lyceum-auth-admin-tls
 
 frontend:
+  global:
+    internalCA:
+      enabled: true
+      configMapName: sesc-internal-ca
+      mountPath: /etc/ssl/certs/sesc-internal-ca.crt
+
   image:
     repository: lyceum-auth-admin-frontend
     tag: "6c3fdee"
@@ -20,7 +26,7 @@ frontend:
 backend:
   image:
     repository: lyceum-auth-admin-backend
-    tag: "c6b518c-configfix"
+    tag: "89b39fb"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 5000
