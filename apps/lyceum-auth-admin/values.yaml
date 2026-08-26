@@ -4,6 +4,13 @@ frontendHostPrefix: admin
 apiHostPrefix: admin
 tlsSecretName: lyceum-auth-admin-tls
 
+
+global:
+  internalCA:
+    enabled: true
+    configMapName: sesc-internal-ca
+    mountPath: /etc/ssl/certs/sesc-internal-ca.crt
+    
 auth:
   hostPrefix: auth
   applicationSlug: auth-admin-app
@@ -23,7 +30,7 @@ frontend:
   port: 4173
   env:
     VITE_AUTH_PATH: /auth
-    VITE_AUTH_CALLBACK_PATH: /auth/callback
+    VITE_AUTH_CALLBACK_PATH: /auth/callback   
     VITE_AUTH_SCOPES: openid profile offline_access auth:users:read auth:users:create auth:users:update auth:users:delete
   resources:
     requests:
