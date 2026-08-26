@@ -48,6 +48,10 @@ spec:
               value: {{ .Values.auth.allowedIssuers | toJson | quote }}
             - name: ROUTER_PATH
               value: {{ .Values.auth.routerPath | quote }}
+            - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
+              value: "false"
+            - name: SEND_ACCESS_TOKEN_AS_COOKIE
+              value: "true"
             - name: USER_SERVICE_URL
               value: {{ .Values.userServiceUrl | quote }}
             - name: RABBITMQ_HOST

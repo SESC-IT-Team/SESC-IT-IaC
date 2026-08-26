@@ -28,6 +28,14 @@ spec:
             {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: DOMAIN
               value: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix) | quote }}
+            - name: VITE_DOMAIN
+              value: {{ printf "https://%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
+            - name: VITE_AUTH_DOMAIN
+              value: {{ printf "https://%s" (include "lyceum-auth-admin.apiFqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
+            {{- range $name, $value := .Values.frontend.env }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /

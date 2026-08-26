@@ -12,10 +12,14 @@ frontend:
 
   image:
     repository: lyceum-auth-admin-frontend
-    tag: "6c3fdee"
+    tag: "796fb2a"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 4173
+  env:
+    VITE_AUTH_PATH: /auth
+    VITE_AUTH_CALLBACK_PATH: /auth/callback
+    VITE_AUTH_SCOPES: openid profile offline_access auth:users:read auth:users:create auth:users:update auth:users:delete
   resources:
     requests:
       cpu: 50m
@@ -65,9 +69,5 @@ externalSecret:
       property: COOKIE_SECURE
     - secretKey: ROUTER_PATH
       property: ROUTER_PATH
-    - secretKey: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
-      property: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
-    - secretKey: SEND_ACCESS_TOKEN_AS_COOKIE
-      property: SEND_ACCESS_TOKEN_AS_COOKIE
     - secretKey: USER_SERVICE_URL
       property: USER_SERVICE_URL

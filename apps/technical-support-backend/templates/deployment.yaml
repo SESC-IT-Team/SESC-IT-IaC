@@ -40,6 +40,10 @@ spec:
               value: {{ .Values.rootPath | quote }}
             - name: AUTH_BASE_URL
               value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | quote }}
+            - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
+              value: "false"
+            - name: SEND_ACCESS_TOKEN_AS_COOKIE
+              value: "true"
           envFrom:
             - secretRef:
                 name: technical-support-backend-secrets

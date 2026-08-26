@@ -24,6 +24,11 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.backend.port }}
+          env:
+            - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
+              value: "false"
+            - name: SEND_ACCESS_TOKEN_AS_COOKIE
+              value: "true"
           volumeMounts:
             {{- include "cluster.internalCAMount" . | nindent 12 }}
           envFrom:
