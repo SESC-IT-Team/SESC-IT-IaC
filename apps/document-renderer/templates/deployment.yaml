@@ -39,7 +39,7 @@ spec:
             - name: REDIS_DB
               value: {{ .Values.redis.db | quote }}
             - name: S3_URL
-              value: {{ .Values.s3.url | quote }}
+              value: {{ printf "%s://%s" .Values.s3.scheme (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.s3.hostPrefix)) | quote }}
             - name: S3_PORT
               value: {{ .Values.s3.port | quote }}
           envFrom:

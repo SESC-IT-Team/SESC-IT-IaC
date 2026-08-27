@@ -86,11 +86,11 @@ spec:
             - name: DOC_RENDERER_DEFAULT_TIMEOUT
               value: {{ .Values.renderer.defaultTimeout | quote }}
             - name: DOC_RENDERER_S3_URL
-              value: {{ .Values.renderer.s3Url | quote }}
+              value: {{ printf "%s://%s" .Values.renderer.s3Scheme (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.renderer.s3HostPrefix)) | quote }}
             - name: DOC_RENDERER_S3_BUCKET_NAME
               value: {{ .Values.renderer.s3BucketName | quote }}
             - name: S3_URL
-              value: {{ .Values.renderer.s3Url | quote }}
+              value: {{ printf "%s://%s" .Values.renderer.s3Scheme (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.renderer.s3HostPrefix)) | quote }}
             - name: S3_PORT
               value: {{ .Values.renderer.s3Port | quote }}
           envFrom:

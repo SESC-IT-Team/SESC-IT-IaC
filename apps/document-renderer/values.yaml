@@ -21,7 +21,8 @@ redis:
   db: 0
 
 s3:
-  url: http://minio.minio.svc.cluster.local
+  scheme: http
+  hostPrefix: s3
   port: 9000
 
 resources:
