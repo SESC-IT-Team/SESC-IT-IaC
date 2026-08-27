@@ -12,7 +12,7 @@ spec:
     kind: {{ .Values.certificate.issuerRef.kind }}
     group: {{ .Values.certificate.issuerRef.group | default "cert-manager.io" }}
   dnsNames:
-    - {{ include "lyceum-auth.host" . | quote }}
+    - {{ include "lyceum-auth.apiHost" . | quote }}
   duration: {{ .Values.certificate.duration }}
   renewBefore: {{ .Values.certificate.renewBefore }}
 {{- end }}

@@ -67,11 +67,8 @@ certificate:
   duration: 2160h
   renewBefore: 360h
 
-ingressRoute:
+ingress:
   enabled: true
-  entryPoints:
-    - websecure
-  tlsSecretName: lyceum-auth-tls
 
 postgresql:
   enabled: true

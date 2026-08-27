@@ -1,19 +1,28 @@
-{{- if .Values.ingressRoute.enabled }}
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: {{ include "lyceum-auth.fullname" . }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.certificate.issuerRef.name }}
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
   labels:
     {{- include "lyceum-auth.labels" . | nindent 4 }}
 spec:
-  entryPoints:
-    {{- toYaml .Values.ingressRoute.entryPoints | nindent 4 }}
-  routes:
-    - kind: Rule
-      match: Host(`{{ include "lyceum-auth.apiHost" . }}`) && PathPrefix(`/`)
-      services:
-        - name: {{ include "lyceum-auth.fullname" . }}
-          port: 8000
+  ingressClassName: traefik
   tls:
-    secretName: {{ .Values.ingressRoute.tlsSecretName }}
+    - hosts:
+        - {{ include "lyceum-auth.apiHost" . | quote }}
+      secretName: {{ .Values.certificate.secretName }}
+  rules:
+    - host: {{ include "lyceum-auth.apiHost" . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "lyceum-auth.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
 {{- end }}
