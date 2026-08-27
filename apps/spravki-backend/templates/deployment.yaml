@@ -58,6 +58,37 @@ spec:
               value: {{ .Values.renderer.rabbitmqHost | quote }}
             - name: RABBITMQ_PORT
               value: {{ .Values.renderer.rabbitmqPort | quote }}
+            - name: DOC_RENDERER_RABBITMQ_HOST
+              value: {{ .Values.renderer.rabbitmqHost | quote }}
+            - name: DOC_RENDERER_RABBITMQ_PORT
+              value: {{ .Values.renderer.rabbitmqPort | quote }}
+            - name: DOC_RENDERER_RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: spravki-backend-secrets
+                  key: RABBITMQ_USER
+            - name: DOC_RENDERER_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: spravki-backend-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: DOC_RENDERER_REDIS_HOST
+              value: {{ .Values.renderer.redisHost | quote }}
+            - name: DOC_RENDERER_REDIS_PORT
+              value: {{ .Values.renderer.redisPort | quote }}
+            - name: DOC_RENDERER_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: spravki-backend-secrets
+                  key: REDIS_PASSWORD
+            - name: DOC_RENDERER_REDIS_DB
+              value: {{ .Values.renderer.redisDb | quote }}
+            - name: DOC_RENDERER_DEFAULT_TIMEOUT
+              value: {{ .Values.renderer.defaultTimeout | quote }}
+            - name: DOC_RENDERER_S3_URL
+              value: {{ .Values.renderer.s3Url | quote }}
+            - name: DOC_RENDERER_S3_BUCKET_NAME
+              value: {{ .Values.renderer.s3BucketName | quote }}
             - name: S3_URL
               value: {{ .Values.renderer.s3Url | quote }}
             - name: S3_PORT

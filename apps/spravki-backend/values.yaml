@@ -36,8 +36,13 @@ auth:
 renderer:
   rabbitmqHost: rabbitmq.rabbitmq.svc.cluster.local
   rabbitmqPort: 5672
+  redisHost: redis.redis.svc.cluster.local
+  redisPort: 6379
+  redisDb: 0
   s3Url: minio.minio.svc.cluster.local
   s3Port: 9000
+  s3BucketName: geometry-dash
+  defaultTimeout: 300
 
 resources:
   requests:
