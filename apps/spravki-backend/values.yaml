@@ -34,7 +34,7 @@ auth:
     - https://auth.sesc-it-team.ru/application/o/spravki-app/
   routerPath: ""
 
-userServiceUrl: https://users.sesc-it-team.ru
+userServiceUrl: https://api.users.sesc-it-team.ru
 
 # document-renderer-sdk client endpoints (in-cluster)
 renderer:
