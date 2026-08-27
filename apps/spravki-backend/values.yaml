@@ -8,7 +8,7 @@ global:
 
 image:
   repository: spravki-backend
-  tag: "115ec98"
+  tag: "549ea98"
   pullPolicy: IfNotPresent
 
 hostPrefix: spravki
@@ -30,11 +30,7 @@ postgres:
 auth:
   hostPrefix: auth
   applicationSlug: spravki-app
-  allowedIssuers:
-    - https://auth.sesc-it-team.ru/application/o/spravki-app/
   routerPath: ""
-
-userServiceUrl: https://api.users.sesc-it-team.ru
 
 # document-renderer-sdk client endpoints (in-cluster)
 renderer:

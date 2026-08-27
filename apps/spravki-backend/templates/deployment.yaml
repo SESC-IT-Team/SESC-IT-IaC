@@ -45,7 +45,7 @@ spec:
             - name: APPLICATION_SLUG
               value: {{ .Values.auth.applicationSlug | quote }}
             - name: ALLOWED_ISSUERS
-              value: {{ .Values.auth.allowedIssuers | toJson | quote }}
+              value: {{ list (printf "%s/application/o/%s/" (include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix)) .Values.auth.applicationSlug) | toJson | quote }}
             - name: ROUTER_PATH
               value: {{ .Values.auth.routerPath | quote }}
             - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
@@ -53,7 +53,7 @@ spec:
             - name: SEND_ACCESS_TOKEN_AS_COOKIE
               value: "true"
             - name: USER_SERVICE_URL
-              value: {{ .Values.userServiceUrl | quote }}
+              value: {{ include "cluster.apiUrl" (dict "ctx" . "prefix" "users") | quote }}
             - name: RABBITMQ_HOST
               value: {{ .Values.renderer.rabbitmqHost | quote }}
             - name: RABBITMQ_PORT
