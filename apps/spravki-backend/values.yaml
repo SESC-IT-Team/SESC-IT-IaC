@@ -41,7 +41,7 @@ renderer:
   redisHost: redis.redis.svc.cluster.local
   redisPort: 6379
   redisDb: 0
-  s3Scheme: http
+  s3Scheme: https
   s3HostPrefix: s3
   s3Port: 9000
   s3BucketName: geometry-dash
