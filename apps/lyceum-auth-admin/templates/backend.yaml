@@ -32,10 +32,12 @@ spec:
               value: {{ printf ".%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
             - name: AUTHENTIK_URL
               value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | quote }}
+            - name: INTERNAL_AUTHENTIK_URL
+              value: http://authentik-server.authentik.svc.cluster.local:9000
             - name: APPLICATION_SLUG
               value: {{ .Values.auth.applicationSlug | quote }}
-            - name: ALLOWED_ISSUERS
-              value: {{ list (printf "%s/application/o/%s/" (include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix)) .Values.auth.applicationSlug) | toJson | quote }}
+            - name: ALLOWED_APPLICATION_SLUGS
+              value: {{ list .Values.auth.applicationSlug | toJson | quote }}
             - name: LOGIN_REDIRECT_URI
               value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
             - name: COOKIE_SECURE

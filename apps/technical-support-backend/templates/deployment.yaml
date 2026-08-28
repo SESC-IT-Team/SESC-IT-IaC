@@ -40,6 +40,16 @@ spec:
               value: {{ .Values.rootPath | quote }}
             - name: AUTH_BASE_URL
               value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | quote }}
+            - name: AUTHENTIK_URL
+              value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | quote }}
+            - name: INTERNAL_AUTHENTIK_URL
+              value: http://authentik-server.authentik.svc.cluster.local:9000
+            - name: APPLICATION_SLUG
+              value: {{ .Values.auth.applicationSlug | quote }}
+            - name: ALLOWED_APPLICATION_SLUGS
+              value: {{ .Values.auth.allowedApplicationSlugs | toJson | quote }}
+            - name: USER_SERVICE_URL
+              value: http://lyceum-auth.lyceum-auth.svc.cluster.local:8000
             - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE
               value: "false"
             - name: SEND_ACCESS_TOKEN_AS_COOKIE

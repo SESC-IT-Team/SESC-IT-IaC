@@ -30,6 +30,8 @@ postgres:
 auth:
   hostPrefix: auth
   applicationSlug: spravki-app
+  allowedApplicationSlugs:
+    - spravki-app
   routerPath: ""
 
 # document-renderer-sdk client endpoints (in-cluster)

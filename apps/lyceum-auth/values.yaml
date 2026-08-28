@@ -8,7 +8,7 @@ global:
 
 image:
   repository: lyceum-auth-backend
-  tag: "fcfbbce"
+  tag: "4faaa2f"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -49,7 +49,7 @@ config:
 
   usersPath: users
 
-  allowedIssuerAppSlugs:
+  allowedApplicationSlugs:
     - spravki-app
     - technical-support-app
     - auth-admin-app

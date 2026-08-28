@@ -56,16 +56,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- list (include "cluster.url" (dict "ctx" . "prefix" .Values.hostPrefix)) | toJson -}}
 {{- end }}
 
-{{- define "lyceum-auth.allowedIssuers" -}}
-{{- $root := . -}}
-{{- $authentikUrl := include "lyceum-auth.authentikUrl" $root -}}
-{{- $issuers := list -}}
-{{- range $root.Values.config.allowedIssuerAppSlugs }}
-{{- $issuers = append $issuers (printf "%s/application/o/%s/" $authentikUrl .) -}}
-{{- end }}
-{{- $issuers | toJson -}}
-{{- end }}
-
 {{- define "lyceum-auth.image" -}}
 {{- if .Values.image.tag }}
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag }}

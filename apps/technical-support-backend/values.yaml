@@ -28,6 +28,9 @@ postgres:
 
 auth:
   hostPrefix: auth
+  applicationSlug: technical-support-app
+  allowedApplicationSlugs:
+    - technical-support-app
 
 resources:
   requests:
