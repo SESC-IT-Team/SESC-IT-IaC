@@ -21,7 +21,7 @@ redis:
   db: 0
 
 s3:
-  scheme: http
+  scheme: https
   hostPrefix: s3
   port: 9000
 
