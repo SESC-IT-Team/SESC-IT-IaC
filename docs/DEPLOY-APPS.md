@@ -73,20 +73,16 @@ If the token was already created before `vault policy write` succeeded, create a
 | `apps/spravki-backend` | `POSTGRES_PASSWORD` | пароль postgres для spravki |
 | `apps/technical-support-backend` | `POSTGRES_PASSWORD` | пароль postgres для TS |
 | `apps/sesc-portal` | `POSTGRES_PASSWORD` | пароль postgres для SESC Portal |
-| `apps/sesc-portal` | `DATABASE_URL` | `postgresql+psycopg://sesc:<password>@sesc-portal-postgres:5432/sesc` |
 | `apps/sesc-portal` | `SECRET_KEY` | случайный секрет для сессий приложения |
-| `apps/rabbitmq` | `RABBITMQ_USER` | имя пользователя (не `guest`) |
 | `apps/rabbitmq` | `RABBITMQ_PASSWORD` | пароль RabbitMQ |
 | `apps/rabbitmq` | `RABBITMQ_ERLANG_COOKIE` | случайная строка (например, `openssl rand -hex 16`) |
 | `apps/redis` | `REDIS_PASSWORD` | пароль Redis |
-| `apps/minio` | `MINIO_ROOT_USER` | access key MinIO |
 | `apps/minio` | `MINIO_ROOT_PASSWORD` | secret key MinIO (мин. 8 символов) |
-| `apps/document-renderer` | `BUCKET_NAME` | имя бакета, например `spravki` |
 | `apps/registry` | `HTPASSWD` | строка `user:bcrypt-hash` — `htpasswd -Bbn <user> <pass>` |
 | `apps/registry` | `REGISTRY_USERNAME` | тот же user, для pull-секрета |
 | `apps/registry` | `REGISTRY_PASSWORD` | тот же пароль |
-| `apps/authentik` | `SPRAVKI_REDIRECT_URI` | `https://api.spravki.<baseDomain>/auth/callback` |
-| `apps/authentik` | `TECHNICAL_SUPPORT_REDIRECT_URI` | `https://api.support.<baseDomain>/auth/callback` |
+
+> Генерируемые в Helm значения: `DATABASE_URL`, `RABBITMQ_USER`, `MINIO_ROOT_USER`, `BUCKET_NAME`, `SPRAVKI_REDIRECT_URI`, `TECHNICAL_SUPPORT_REDIRECT_URI`, `AUTH_ADMIN_APP_REDIRECT_URI`, client IDs и `AUTHENTIK_ADMIN_EMAIL`.
 | `apps/lyceum-auth` | `POSTGRES_PASSWORD` | пароль встроенной PostgreSQL для Lyceum Auth |
 | `apps/lyceum-auth` | `ADMIN_PASSWORD` | пароль пользователя `ADMIN_LOGIN` |
 | `apps/lyceum-auth` | `SA_AUTH_ADMIN_APP_API_TOKEN` | API-токен service account `auth-admin-app` из Authentik |

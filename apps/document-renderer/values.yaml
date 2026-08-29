@@ -14,16 +14,21 @@ image:
 rabbitmq:
   host: rabbitmq.rabbitmq.svc.cluster.local
   port: 5672
+  user: sesc
 
 redis:
   host: redis.redis.svc.cluster.local
   port: 6379
   db: 0
 
+minio:
+  user: minioadmin
+
 s3:
   scheme: https
   hostPrefix: s3
   port: 9000
+  bucketName: geometry-dash
 
 resources:
   requests:

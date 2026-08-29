@@ -22,6 +22,16 @@ authentik:
   serverReplicas: 1
   workerReplicas: 1
   errorReportingEnabled: false
+  adminEmail: admin@example.com
+  clients:
+    spravki:
+      clientId: spravki-client-id
+    technicalSupport:
+      clientId: technical-support-client-id
+    authAdmin:
+      clientId: auth-admin-client-id
+    openfga:
+      clientId: openfga-client-id
   resources:
     server:
       requests:

@@ -45,6 +45,30 @@ spec:
             - name: AUTHENTIK_POSTGRESQL__USER
               value: {{ .Values.postgres.user | quote }}
 
+            - name: AUTHENTIK_BOOTSTRAP_EMAIL
+              value: {{ .Values.authentik.adminEmail | quote }}
+
+            - name: SPRAVKI_CLIENT_ID
+              value: {{ .Values.authentik.clients.spravki.clientId | quote }}
+
+            - name: SPRAVKI_REDIRECT_URI
+              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" "api.spravki")) | quote }}
+
+            - name: TECHNICAL_SUPPORT_CLIENT_ID
+              value: {{ .Values.authentik.clients.technicalSupport.clientId | quote }}
+
+            - name: TECHNICAL_SUPPORT_REDIRECT_URI
+              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" "api.support")) | quote }}
+
+            - name: AUTH_ADMIN_APP_CLIENT_ID
+              value: {{ .Values.authentik.clients.authAdmin.clientId | quote }}
+
+            - name: AUTH_ADMIN_APP_REDIRECT_URI
+              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" "admin")) | quote }}
+
+            - name: OPENFGA_CLIENT_ID
+              value: {{ .Values.authentik.clients.openfga.clientId | quote }}
+
             - name: AUTHENTIK_ERROR_REPORTING__ENABLED
               value: {{ .Values.authentik.errorReportingEnabled | quote }}
 

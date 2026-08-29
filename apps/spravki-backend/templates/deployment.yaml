@@ -67,10 +67,7 @@ spec:
             - name: DOC_RENDERER_RABBITMQ_PORT
               value: {{ .Values.renderer.rabbitmqPort | quote }}
             - name: DOC_RENDERER_RABBITMQ_USER
-              valueFrom:
-                secretKeyRef:
-                  name: spravki-backend-secrets
-                  key: RABBITMQ_USER
+              value: {{ .Values.renderer.rabbitmqUser | quote }}
             - name: DOC_RENDERER_RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -97,6 +94,15 @@ spec:
               value: {{ printf "%s://%s" .Values.renderer.s3Scheme (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.renderer.s3HostPrefix)) | quote }}
             - name: S3_PORT
               value: {{ .Values.renderer.s3Port | quote }}
+            - name: CLIENT_ID
+              value: {{ .Values.auth.clientId | quote }}
+            - name: CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: spravki-backend-secrets
+                  key: CLIENT_SECRET
+            - name: LOGIN_REDIRECT_URI
+              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" "api.spravki")) | quote }}
           envFrom:
             - secretRef:
                 name: spravki-backend-secrets

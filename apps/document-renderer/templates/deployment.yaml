@@ -32,6 +32,8 @@ spec:
               value: {{ .Values.rabbitmq.host | quote }}
             - name: RABBITMQ_PORT
               value: {{ .Values.rabbitmq.port | quote }}
+            - name: RABBITMQ_USER
+              value: {{ .Values.rabbitmq.user | quote }}
             - name: REDIS_HOST
               value: {{ .Values.redis.host | quote }}
             - name: REDIS_PORT
@@ -42,6 +44,10 @@ spec:
               value: {{ printf "%s://%s" .Values.s3.scheme (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.s3.hostPrefix)) | quote }}
             - name: S3_PORT
               value: {{ .Values.s3.port | quote }}
+            - name: S3_BUCKET_NAME
+              value: {{ .Values.s3.bucketName | quote }}
+            - name: MINIO_ROOT_USER
+              value: {{ .Values.minio.user | quote }}
           envFrom:
             - secretRef:
                 name: document-renderer-secrets

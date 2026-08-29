@@ -28,11 +28,13 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: [".venv/bin/python", "scripts/migrate_db.py"]
           env:
-            - name: DATABASE_URL
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: sesc-portal-secrets
-                  key: DATABASE_URL
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql+psycopg://{{ .Values.postgres.user }}:$(POSTGRES_PASSWORD)@sesc-portal-postgres:5432/{{ .Values.postgres.database }}
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:

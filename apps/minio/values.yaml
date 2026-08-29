@@ -4,6 +4,7 @@ image: quay.io/minio/minio:latest
 
 apiHostPrefix: s3
 consoleHostPrefix: minio
+rootUser: minioadmin
 
 apiPort: 9000
 consolePort: 9001

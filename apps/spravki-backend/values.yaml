@@ -30,6 +30,7 @@ postgres:
 auth:
   hostPrefix: auth
   applicationSlug: spravki-app
+  clientId: spravki-client-id
   allowedApplicationSlugs:
     - spravki-app
   routerPath: ""
@@ -38,6 +39,7 @@ auth:
 renderer:
   rabbitmqHost: rabbitmq.rabbitmq.svc.cluster.local
   rabbitmqPort: 5672
+  rabbitmqUser: sesc
   redisHost: redis.redis.svc.cluster.local
   redisPort: 6379
   redisDb: 0
@@ -45,6 +47,7 @@ renderer:
   s3HostPrefix: s3
   s3Port: 9000
   s3BucketName: geometry-dash
+  minioUser: minioadmin
   defaultTimeout: 300
 
 resources:
