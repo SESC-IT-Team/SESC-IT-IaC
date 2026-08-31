@@ -18,6 +18,13 @@ spec:
         {{- include "lyceum-auth.selectorLabels" . | nindent 8 }}
     spec:
       restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -ec
+            - until pg_isready -h {{ .Values.config.postgres.host | quote }} -p {{ .Values.config.postgres.port | quote }}; do sleep 2; done
       containers:
         - name: migration
           image: {{ include "cluster.privateImage" . | quote }}
