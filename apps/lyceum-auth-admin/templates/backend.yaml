@@ -36,6 +36,8 @@ spec:
               value: http://authentik-server.authentik.svc.cluster.local:9000
             - name: APPLICATION_SLUG
               value: {{ .Values.auth.applicationSlug | quote }}
+            - name: CLIENT_ID
+              value: {{ .Values.auth.clientId | quote }}
             - name: ALLOWED_APPLICATION_SLUGS
               value: {{ list .Values.auth.applicationSlug | toJson | quote }}
             - name: LOGIN_REDIRECT_URI
