@@ -49,6 +49,10 @@ spec:
               if [ "{{ .Values.migration.enabled }}" = "true" ]; then
                 uv run --no-sync alembic upgrade head
               fi
+              if [ "{{ .Values.bootstrap.enabled }}" = "true" ]; then
+                echo "Running bootstrap..."
+                uv run --no-sync python scripts/create_admin.py
+              fi
               exec uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port 8000
           ports:
             - name: http
@@ -73,6 +77,8 @@ spec:
               value: "/"
             - name: USERS_PATH
               value: "users"
+            - name: PYTHONPATH
+              value: "/app"
           envFrom:
             - configMapRef:
                 name: {{ include "lyceum-auth.fullname" . }}-config
