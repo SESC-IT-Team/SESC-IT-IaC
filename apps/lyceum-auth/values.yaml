@@ -37,7 +37,7 @@ externalSecret:
 
 config:
   postgres:
-    host: 10.43.213.17
+    host: askjdjkas
     port: "5432"
     database: lyceum_auth
     user: lyceum_auth
