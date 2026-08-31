@@ -102,7 +102,7 @@ spec:
                   name: spravki-backend-secrets
                   key: CLIENT_SECRET
             - name: LOGIN_REDIRECT_URI
-              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" "api.spravki")) | quote }}
+              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" .Values.hostPrefix)) | quote }}
           envFrom:
             - secretRef:
                 name: spravki-backend-secrets

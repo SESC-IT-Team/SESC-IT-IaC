@@ -51,7 +51,7 @@ spec:
               value: {{ .Values.authentik.clients.spravki.clientId | quote }}
 
             - name: SPRAVKI_REDIRECT_URI
-              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" "api.spravki")) | quote }}
+              value: {{ printf "%s/auth/callback" (include "cluster.url" (dict "ctx" . "prefix" "spravki")) | quote }}
 
             - name: TECHNICAL_SUPPORT_CLIENT_ID
               value: {{ .Values.authentik.clients.technicalSupport.clientId | quote }}
