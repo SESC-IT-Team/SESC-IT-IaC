@@ -8,7 +8,7 @@ global:
 
 image:
   repository: lyceum-auth-backend
-  tag: "49571ce"
+  tag: "22c1911"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
