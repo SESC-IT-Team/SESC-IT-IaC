@@ -46,11 +46,6 @@ spec:
             - -ec
             - |
               echo "POSTGRES_HOST=${POSTGRES_HOST:-unset}"
-              if [ -n "${DATABASE_URL:-}" ]; then
-                echo "DATABASE_URL is set"
-              else
-                echo "DATABASE_URL is unset"
-              fi
               if [ "{{ .Values.migration.enabled }}" = "true" ]; then
                 uv run --no-sync alembic upgrade head
               fi
@@ -74,8 +69,6 @@ spec:
               value: {{ .Values.config.postgres.database | quote }}
             - name: POSTGRES_USER
               value: {{ .Values.config.postgres.user | quote }}
-            - name: DATABASE_URL
-              value: postgresql+asyncpg://{{ .Values.config.postgres.user }}:$(POSTGRES_PASSWORD)@{{ include "lyceum-auth.postgresHost" . }}:{{ .Values.config.postgres.port }}/{{ .Values.config.postgres.database }}
             - name: ROOT_PATH
               value: "/"
             - name: USERS_PATH

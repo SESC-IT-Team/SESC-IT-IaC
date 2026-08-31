@@ -50,8 +50,6 @@ spec:
               value: {{ .Values.config.postgres.database | quote }}
             - name: POSTGRES_USER
               value: {{ .Values.config.postgres.user | quote }}
-            - name: DATABASE_URL
-              value: postgresql+asyncpg://{{ .Values.config.postgres.user }}:$(POSTGRES_PASSWORD)@{{ include "lyceum-auth.postgresHost" . }}:{{ .Values.config.postgres.port }}/{{ .Values.config.postgres.database }}
           envFrom:
             - configMapRef:
                 name: {{ include "lyceum-auth.fullname" . }}-config
