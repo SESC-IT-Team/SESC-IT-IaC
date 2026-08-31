@@ -8,7 +8,7 @@ global:
 
 image:
   repository: lyceum-auth-backend
-  tag: "9c6ef7c"
+  tag: "854fd2e"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -37,7 +37,6 @@ externalSecret:
 
 config:
   postgres:
-    host: lyceum-auth-postgresql
     port: "5432"
     database: lyceum_auth
     user: lyceum_auth
