@@ -38,7 +38,7 @@ spec:
           env:
             {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: POSTGRES_HOST
-              value: {{ include "lyceum-auth.postgresHost" . | quote }}
+              value: {{ .Values.config.postgres.host | default (printf "%s-postgresql.%s.svc.cluster.local" (include "lyceum-auth.fullname" .) .Release.Namespace) | quote }}
             - name: POSTGRES_PORT
               value: {{ .Values.config.postgres.port | quote }}
             - name: POSTGRES_DB

@@ -53,8 +53,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{- define "lyceum-auth.postgresHost" -}}
-{{- if .Values.config.postgres.host -}}
-{{- .Values.config.postgres.host -}}
+{{- $host := .Values.config.postgres.host | default "" -}}
+{{- if $host -}}
+{{- $host -}}
 {{- else -}}
 {{- printf "%s-postgresql.%s.svc.cluster.local" (include "lyceum-auth.fullname" .) .Release.Namespace -}}
 {{- end -}}
