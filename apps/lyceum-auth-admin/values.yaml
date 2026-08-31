@@ -15,6 +15,7 @@ auth:
   hostPrefix: auth
   applicationSlug: auth-admin-app
   clientId: auth-admin-client-id
+  routerPath: ""
 
 frontend:
   global:
