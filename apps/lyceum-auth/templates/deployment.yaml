@@ -38,7 +38,7 @@ spec:
           env:
             {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: POSTGRES_HOST
-              value: {{ .Values.config.postgres.host | quote }}
+              value: {{ include "lyceum-auth.postgresHost" . | quote }}
             - name: POSTGRES_PORT
               value: {{ .Values.config.postgres.port | quote }}
             - name: POSTGRES_DB

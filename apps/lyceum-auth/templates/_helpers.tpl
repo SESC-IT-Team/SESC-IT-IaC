@@ -52,6 +52,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- include "cluster.url" (dict "ctx" . "prefix" .Values.authentikHostPrefix) -}}
 {{- end }}
 
+{{- define "lyceum-auth.postgresHost" -}}
+{{- if .Values.config.postgres.host -}}
+{{- .Values.config.postgres.host -}}
+{{- else -}}
+{{- printf "%s-postgresql.%s.svc.cluster.local" (include "lyceum-auth.fullname" .) .Release.Namespace -}}
+{{- end -}}
+{{- end }}
+
 {{- define "lyceum-auth.allowedOrigins" -}}
 {{- list (include "cluster.url" (dict "ctx" . "prefix" .Values.hostPrefix)) | toJson -}}
 {{- end }}

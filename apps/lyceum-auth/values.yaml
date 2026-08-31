@@ -37,7 +37,7 @@ externalSecret:
 
 config:
   postgres:
-    host: lyceum-auth-postgresql.lyceum-auth.svc.cluster.local
+    host: ""
     port: "5432"
     database: lyceum_auth
     user: lyceum_auth
