@@ -8,7 +8,7 @@ global:
 
 image:
   repository: spravki-frontend
-  tag: "18da010"
+  tag: "001c87a"
   pullPolicy: IfNotPresent
 
 hostPrefix: spravki
