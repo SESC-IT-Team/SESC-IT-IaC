@@ -16,6 +16,7 @@
       - curl
       - fish
       - git
+      - jq
       - mc
       - python3-pip
     state: present
@@ -29,6 +30,7 @@
       - curl
       - fish
       - git
+      - jq
       - mc
       - python3-pip
     state: present
@@ -355,4 +357,122 @@
     kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
     apply -f {{ iac_dir }}/argocd/bootstrap/root-app.yaml
   changed_when: false
+
+# ---------------------------------------------------------------------------
+# Vault Kubernetes auth bootstrap
+# ---------------------------------------------------------------------------
+- name: Require Vault root token for bootstrap
+  ansible.builtin.assert:
+    that:
+      - vault_root_token | length > 0
+    fail_msg: "Set VAULT_ROOT_TOKEN in the Ansible controller environment."
+  no_log: true
+
+- name: Wait for Vault pod
+  ansible.builtin.command: >-
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml
+    wait --for=condition=Ready pod/{{ vault_pod }}
+    -n {{ vault_namespace }} --timeout=10m
+  changed_when: false
+
+- name: Wait for External Secrets ServiceAccount
+  kubernetes.core.k8s_info:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    api_version: v1
+    kind: ServiceAccount
+    name: external-secrets
+    namespace: external-secrets
+  register: external_secrets_serviceaccount
+  retries: 60
+  delay: 5
+  until: external_secrets_serviceaccount.resources | length > 0
+
+- name: Apply Vault auth RBAC
+  kubernetes.core.k8s:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    src: "{{ iac_dir }}/argocd/resources/vault-secret-store/vault-auth-delegator.yaml"
+    state: present
+
+- name: Enable Vault Kubernetes auth method
+  ansible.builtin.shell: |
+    set -o pipefail
+    if ! kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} -- \
+      env VAULT_TOKEN="$VAULT_ROOT_TOKEN" vault auth list -format=json | \
+      jq -e 'has("{{ vault_kubernetes_auth_mount }}/")' >/dev/null; then
+      kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} -- \
+        env VAULT_TOKEN="$VAULT_ROOT_TOKEN" vault auth enable {{ vault_kubernetes_auth_mount }}
+    fi
+  args:
+    executable: /bin/bash
+  environment:
+    VAULT_ROOT_TOKEN: "{{ vault_root_token }}"
+  changed_when: false
+  no_log: true
+
+- name: Configure Vault Kubernetes auth
+  ansible.builtin.shell: |
+    set -o pipefail
+    reviewer_jwt=$(kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} -- \
+      cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} -- \
+      env VAULT_TOKEN="$VAULT_ROOT_TOKEN" REVIEWER_JWT="$reviewer_jwt" \
+      vault write auth/{{ vault_kubernetes_auth_mount }}/config \
+      token_reviewer_jwt="$reviewer_jwt" \
+      kubernetes_host="https://kubernetes.default.svc:443" \
+      kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  args:
+    executable: /bin/bash
+  environment:
+    VAULT_ROOT_TOKEN: "{{ vault_root_token }}"
+  changed_when: false
+  no_log: true
+
+- name: Ensure Vault KV v2 mount exists
+  ansible.builtin.shell: |
+    set -o pipefail
+    if ! kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} -- \
+      env VAULT_TOKEN="$VAULT_ROOT_TOKEN" vault secrets list -format=json | \
+      jq -e 'has("{{ vault_kv_mount }}/")' >/dev/null; then
+      kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} -- \
+        env VAULT_TOKEN="$VAULT_ROOT_TOKEN" vault secrets enable -path={{ vault_kv_mount }} kv-v2
+    fi
+  args:
+    executable: /bin/bash
+  environment:
+    VAULT_ROOT_TOKEN: "{{ vault_root_token }}"
+  changed_when: false
+  no_log: true
+
+- name: Configure Vault policy for External Secrets
+  ansible.builtin.shell: |
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec -i {{ vault_pod }} -- \
+      env VAULT_TOKEN="$VAULT_ROOT_TOKEN" vault policy write external-secrets - <<'EOF'
+    path "{{ vault_kv_mount }}/data/apps/*" {
+      capabilities = ["read"]
+    }
+    path "{{ vault_kv_mount }}/metadata/apps/*" {
+      capabilities = ["read", "list"]
+    }
+    EOF
+  args:
+    executable: /bin/bash
+  environment:
+    VAULT_ROOT_TOKEN: "{{ vault_root_token }}"
+  changed_when: false
+  no_log: true
+
+- name: Configure Vault role for External Secrets
+  ansible.builtin.shell: >-
+    kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} --
+    env VAULT_TOKEN="$VAULT_ROOT_TOKEN"
+    vault write auth/{{ vault_kubernetes_auth_mount }}/role/{{ vault_kubernetes_auth_role }}
+    bound_service_account_names=external-secrets
+    bound_service_account_namespaces=external-secrets
+    policies=external-secrets ttl=1h
+  args:
+    executable: /bin/bash
+  environment:
+    VAULT_ROOT_TOKEN: "{{ vault_root_token }}"
+  changed_when: false
+  no_log: true
 

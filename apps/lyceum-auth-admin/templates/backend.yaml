@@ -27,7 +27,7 @@ spec:
           env:
             {{- include "cluster.internalCAEnv" . | nindent 12 }}
             - name: ALLOWED_ORIGINS
-              value: {{ list (include "cluster.url" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | toJson | quote }}
+              value: {{ include "lyceum-auth-admin.allowedOrigins" . | quote }}
             - name: COOKIE_DOMAIN
               value: {{ printf ".%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix)) | quote }}
             - name: AUTHENTIK_URL
@@ -36,6 +36,8 @@ spec:
               value: http://authentik-server.authentik.svc.cluster.local:9000
             - name: APPLICATION_SLUG
               value: {{ .Values.auth.applicationSlug | quote }}
+            - name: CLIENT_ID
+              value: {{ .Values.auth.clientId | quote }}
             - name: ALLOWED_APPLICATION_SLUGS
               value: {{ list .Values.auth.applicationSlug | toJson | quote }}
             - name: LOGIN_REDIRECT_URI
@@ -43,7 +45,7 @@ spec:
             - name: COOKIE_SECURE
               value: "true"
             - name: ROUTER_PATH
-              value: "/auth"
+              value: {{ .Values.auth.routerPath | quote }}
             - name: USER_SERVICE_URL
               value: {{ include "cluster.apiUrl" (dict "ctx" . "prefix" "users") | quote }}
             - name: SEND_ACCESS_TOKEN_IN_JSON_RESPONSE

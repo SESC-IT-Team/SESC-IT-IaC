@@ -7,10 +7,18 @@ argocd_chart_version: "7.7.0"
 gitops_repo_url: "https://github.com/SESC-IT-Team/SESC-IT-IaC.git"
 gitops_target_revision: "HEAD"
 
+# Vault bootstrap secret. Pass VAULT_ROOT_TOKEN from the controller environment.
+vault_root_token: "{{ lookup('ansible.builtin.env', 'VAULT_ROOT_TOKEN') }}"
+vault_namespace: vault
+vault_pod: vault-0
+vault_kubernetes_auth_mount: kubernetes
+vault_kubernetes_auth_role: external-secrets
+vault_kv_mount: kv
+
 # ---- cert-manager / LetsEncrypt ------------------------------------------
 # Issues the TLS certificate referenced by the ArgoCD Ingress.
 cert_manager_chart_version: "v1.16.3"
-letsencrypt_email: "it@sesc-it-team.ru"
+letsencrypt_email: "it@sit.lyceum.usu.ru"
 letsencrypt_server: "https://acme-v02.api.letsencrypt.org/directory"
 
 # ---- SSH users -----------------------------------------------------------

@@ -1,4 +1,4 @@
-{{- if .Values.migration.enabled }}
+{{- if and .Values.migration.enabled .Values.migration.createJob }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -18,6 +18,13 @@ spec:
         {{- include "lyceum-auth.selectorLabels" . | nindent 8 }}
     spec:
       restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -ec
+            - until pg_isready -h {{ include "lyceum-auth.postgresHost" . | quote }} -p {{ .Values.config.postgres.port | quote }}; do sleep 2; done
       containers:
         - name: migration
           image: {{ include "cluster.privateImage" . | quote }}
@@ -26,9 +33,23 @@ spec:
             - bash
             - -ec
             - |
+              echo "POSTGRES_HOST=${POSTGRES_HOST:-unset}"
               uv run --no-sync alembic upgrade head
           env:
             {{- include "cluster.internalCAEnv" . | nindent 12 }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecret.targetSecretName }}
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_HOST
+              value: {{ include "lyceum-auth.postgresHost" . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.config.postgres.port | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.config.postgres.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.config.postgres.user | quote }}
           envFrom:
             - configMapRef:
                 name: {{ include "lyceum-auth.fullname" . }}-config

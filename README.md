@@ -7,8 +7,14 @@
 ```bash
 cd ansible
 ansible-galaxy install -r requirements.yml
-ansible-playbook -i inventories/local.yml playbooks/k3s-server.yml
+VAULT_ROOT_TOKEN='...' ansible-playbook -i inventories/local.yml playbooks/k3s-server.yml
 ```
+
+`VAULT_ROOT_TOKEN` is required only during bootstrap and must be supplied from
+the controller environment or an encrypted Ansible Vault variable. The
+playbook declaratively configures Vault Kubernetes auth, the `kv` KV v2 mount,
+the External Secrets policy and role, while ArgoCD manages the corresponding
+Kubernetes RBAC and secret-store resources.
 
 Подробная инструкция — в [docs/ARGOCD.md](docs/ARGOCD.md).
 

@@ -8,7 +8,7 @@ global:
 
 image:
   repository: lyceum-auth-backend
-  tag: "4faaa2f"
+  tag: "22c1911"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -37,7 +37,6 @@ externalSecret:
 
 config:
   postgres:
-    host: lyceum-auth-postgresql
     port: "5432"
     database: lyceum_auth
     user: lyceum_auth
@@ -105,8 +104,12 @@ persistence:
 
 migration:
   enabled: true
+  createJob: false
   backoffLimit: 3
   ttlSecondsAfterFinished: 86400
+
+bootstrap:
+  enabled: true
 
 service:
   type: ClusterIP

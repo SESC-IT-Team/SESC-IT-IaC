@@ -11,3 +11,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- define "lyceum-auth-admin.apiFqdn" -}}
 {{- printf "api.%s" (include "cluster.fqdn" (dict "ctx" .ctx "prefix" .prefix)) -}}
 {{- end }}
+
+{{- define "lyceum-auth-admin.allowedOrigins" -}}
+{{- $fqdn := include "cluster.fqdn" (dict "ctx" . "prefix" .Values.frontendHostPrefix) -}}
+{{- list (printf "https://%s" $fqdn) (printf "http://%s" $fqdn) | toJson -}}
+{{- end }}

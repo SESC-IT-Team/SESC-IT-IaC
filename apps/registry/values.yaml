@@ -20,7 +20,7 @@ cleanup:
   schedule: "15 03 * * *"
   garbageCollectSchedule: "30 03 * * *"
   registryURL: http://registry:5000
-  kubectlImage: rancher/kubectl:v1.31.4
+  kubectlImage: bitnami/kubectl:1.31.4
   retentionImage: python:3.12-alpine
   existingSecret: ""
   usernameKey: username

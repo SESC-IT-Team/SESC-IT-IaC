@@ -14,6 +14,7 @@ data:
     import sys
     from datetime import datetime, timedelta, timezone
     from urllib.error import HTTPError
+    from urllib.parse import urljoin
     from urllib.request import Request, urlopen
 
     base_url = os.environ["REGISTRY_URL"].rstrip("/")
@@ -30,6 +31,13 @@ data:
         if auth:
             headers["Authorization"] = auth
         req = Request(base_url + path, headers=headers, method=method)
+        return urlopen(req, timeout=30)
+
+    def request_url(url, method="GET", accept="application/json"):
+        headers = {"Accept": accept}
+        if auth:
+            headers["Authorization"] = auth
+        req = Request(url, headers=headers, method=method)
         return urlopen(req, timeout=30)
 
     def get_json(path, accept="application/json"):
@@ -54,7 +62,23 @@ data:
     def protected(tag):
         return any(pattern.fullmatch(tag) for pattern in patterns)
 
-    catalog = get_json("/v2/_catalog?n=10000").get("repositories", [])
+    catalog = []
+    catalog_url = base_url + "/v2/_catalog?n=100"
+    try:
+        while catalog_url:
+            with request_url(catalog_url) as response:
+                page = json.load(response)
+                catalog.extend(page.get("repositories", []))
+                next_link = response.headers.get("Link")
+            catalog_url = None
+            if next_link:
+                match = re.search(r"<([^>]+)>;\s*rel=\"next\"", next_link)
+                if match:
+                    catalog_url = urljoin(base_url + "/", match.group(1))
+    except (HTTPError, ValueError, json.JSONDecodeError) as error:
+        print("failed to list registry catalog: %s" % error, file=sys.stderr)
+        sys.exit(1)
+
     for repository in catalog:
         tags = get_json("/v2/%s/tags/list" % repository).get("tags") or []
         candidates = []
@@ -63,19 +87,22 @@ data:
             try:
                 with request("/v2/%s/manifests/%s" % (repository, tag), method="HEAD", accept="application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json") as response:
                     digest = response.headers.get("Docker-Content-Digest")
+                if not digest:
+                    raise RuntimeError("missing digest for %s:%s" % (repository, tag))
                 if protected(tag):
                     protected_digests.add(digest)
                 else:
                     candidates.append((tag, digest, created_at(repository, tag)))
             except HTTPError as error:
-                print("skip %s:%s: %s" % (repository, tag, error), file=sys.stderr)
+                raise RuntimeError("failed to resolve digest for %s:%s: %s" % (repository, tag, error)) from error
         candidates.sort(key=lambda item: item[2] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
         for index, (tag, digest, created) in enumerate(candidates):
             if digest in protected_digests or (index < keep_last and not (created and created < cutoff)):
                 continue
             if index >= keep_last or (created and created < cutoff):
                 try:
-                    request("/v2/%s/manifests/%s" % (repository, digest), method="DELETE")
+                    with request("/v2/%s/manifests/%s" % (repository, digest), method="DELETE"):
+                        pass
                     print("deleted %s:%s" % (repository, tag))
                 except HTTPError as error:
                     print("failed %s:%s: %s" % (repository, tag, error), file=sys.stderr)

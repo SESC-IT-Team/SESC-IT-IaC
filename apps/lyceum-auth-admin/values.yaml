@@ -14,6 +14,8 @@ global:
 auth:
   hostPrefix: auth
   applicationSlug: auth-admin-app
+  clientId: auth-admin-client-id
+  routerPath: ""
 
 frontend:
   global:
@@ -24,7 +26,7 @@ frontend:
 
   image:
     repository: lyceum-auth-admin-frontend
-    tag: "fca579b"
+    tag: "9ad116c"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 4173
@@ -42,7 +44,7 @@ frontend:
 backend:
   image:
     repository: lyceum-auth-admin-backend
-    tag: "b0dbcf3"
+    tag: "b049d6a"
     pullPolicy: IfNotPresent
   replicas: 1
   port: 5000
@@ -62,9 +64,7 @@ externalSecret:
     name: vault-kv
     kind: ClusterSecretStore
   remoteRef:
-    key: apps/lyceum-auth-admin
+    key: apps/authentik
   data:
-    - secretKey: CLIENT_ID
-      property: CLIENT_ID
     - secretKey: CLIENT_SECRET
-      property: CLIENT_SECRET
+      property: AUTH_ADMIN_APP_CLIENT_SECRET

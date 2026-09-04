@@ -25,20 +25,48 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -ec
+            - |
+              until pg_isready -h {{ include "lyceum-auth.postgresHost" . | quote }} -p {{ .Values.config.postgres.port | quote }}; do
+                sleep 2;
+              done
       containers:
         - name: auth-api
           image: {{ include "cluster.privateImage" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+          command:
+            - bash
+            - -ec
+            - |
+              echo "POSTGRES_HOST=${POSTGRES_HOST:-unset}"
+              if [ "{{ .Values.migration.enabled }}" = "true" ]; then
+                uv run --no-sync alembic upgrade head
+              fi
+              if [ "{{ .Values.bootstrap.enabled }}" = "true" ]; then
+                echo "Running bootstrap..."
+                uv run --no-sync python -m scripts.create_admin
+              fi
+              exec uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port 8000
           ports:
             - name: http
               containerPort: 8000
               protocol: TCP
           env:
             {{- include "cluster.internalCAEnv" . | nindent 12 }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecret.targetSecretName }}
+                  key: POSTGRES_PASSWORD
             - name: POSTGRES_HOST
-              value: {{ .Values.config.postgres.host | quote }}
+              value: {{ include "lyceum-auth.postgresHost" . | quote }}
             - name: POSTGRES_PORT
               value: {{ .Values.config.postgres.port | quote }}
             - name: POSTGRES_DB
@@ -49,6 +77,8 @@ spec:
               value: "/"
             - name: USERS_PATH
               value: "users"
+            - name: PYTHONPATH
+              value: "/app"
           envFrom:
             - configMapRef:
                 name: {{ include "lyceum-auth.fullname" . }}-config
