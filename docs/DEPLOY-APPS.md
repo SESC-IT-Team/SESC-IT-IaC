@@ -1,6 +1,6 @@
 # Деплой приложений через ArgoCD: Spravki, Technical Support, SESC Portal, Document Renderer
 
-Манифесты всех приложений живут в этом репозитории (GitOps). DNS-зона кластера — `global.baseDomain` в [charts/cluster/values.yaml](../charts/cluster/values.yaml). Образы — в приватном registry `reg.<baseDomain>` (внутри кластера containerd тянет их через mirror `http://127.0.0.1:5000`).
+Манифесты всех приложений живут в этом репозитории (GitOps). DNS-зона кластера — `global.baseDomain` в [charts/cluster/values.yaml](../charts/cluster/values.yaml). Образы — в приватном registry `reg.<baseDomain>` через secure Ingress.
 
 ---
 
@@ -95,7 +95,7 @@ VAULT_TOKEN=<токен> ./docs/import-vault-secrets.sh <подготовлен�
 
 ## 2. DNS
 
-A-записи → `212.113.98.188`:
+A-записи → `10.88.0.96`:
 
 ```
 spravki.<baseDomain>
@@ -117,7 +117,7 @@ argocd.<baseDomain>
 
 Registry доступен по `https://reg.<baseDomain>` (внутренний CA через cert-manager). Установите `sesc-internal-ca.crt` на Docker-клиент, прежде чем выполнять HTTPS push/pull. Basic-auth (htpasswd) **выключен** (`auth.enabled: false` в `apps/registry/values.yaml`); чтобы включить — внести `HTPASSWD` в Vault `apps/registry` и переключить флаг в `true`.
 
-Containerd K3s тянет образы **без TLS и без auth** через mirror `http://127.0.0.1:5000` — за это отвечает `/etc/rancher/k3s/registries.yaml` (генерируется ansible, см. `ansible/roles/k3s_setup/tasks/main.yml`). После первого прогона плейбука containerd умеет резолвить `reg.<baseDomain>/<image>` в локальный mirror.
+Containerd K3s тянет образы через Ingress `https://reg.<baseDomain>`; прямой доступ к порту `5000` на узле отключён. Убедитесь, что внутренний CA установлен в доверенное хранилище узла.
 
 Локальная сборка и push:
 

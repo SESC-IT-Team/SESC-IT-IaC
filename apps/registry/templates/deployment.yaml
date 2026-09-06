@@ -24,10 +24,6 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
 
-      {{- if .Values.hostNetwork }}
-      hostNetwork: true
-      dnsPolicy: {{ .Values.dnsPolicy }}
-      {{- end }}
       securityContext:
         fsGroup: {{ .Values.securityContext.fsGroup }}
         runAsUser: {{ .Values.securityContext.runAsUser }}
@@ -38,7 +34,6 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.ports.containerPort }}
-              hostPort: {{ .Values.ports.hostPort }}
           env:
             - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
               value: {{ .Values.storage.rootDirectory | quote }}

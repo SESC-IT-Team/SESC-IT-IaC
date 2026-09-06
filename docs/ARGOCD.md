@@ -15,7 +15,7 @@
 | GitOps root app        | `argocd`    | [argocd/bootstrap/root-app.yaml](../argocd/bootstrap/root-app.yaml) | app-of-apps (сканирует `argocd/apps/`) |
 | GitOps AppProject      | `argocd`    | [argocd/bootstrap/project.yaml](../argocd/bootstrap/project.yaml)   | права на репозиторий и кластер          |
 
-Порт registry: `5000/tcp` на хосте (`212.113.98.188:5000`).
+Registry доступен через Ingress по адресу `https://reg.<baseDomain>`.
 UI ArgoCD: `https://argocd.sesc-it-team.ru`.
 
 ```mermaid
@@ -33,14 +33,14 @@ flowchart LR
 
 ## 1. Подготовка сервера (один раз)
 
-Эти шаги **не автоматизированы** — выполняются вручную на сервере `212.113.98.188` перед первым запуском плейбука.
+Эти шаги **не автоматизированы** — выполняются вручную на сервере `10.88.0.96` перед первым запуском плейбука.
 
 ### 1.1 Освободить порты 80/443
 
 K3s по умолчанию поднимает встроенный Traefik, который слушает `80` и `443`. Старый Traefik в docker-compose нужно остановить:
 
 ```bash
-ssh root@212.113.98.188
+ssh root@10.88.0.96
 cd /opt/apps  # или где лежит клон репозитория с traefik/
 cd traefik && docker compose down
 ```
@@ -73,7 +73,7 @@ ansible-playbook -i inventories/local.yml playbooks/k3s-server.yml
 Что происходит в плейбуке ([ansible/roles/k3s_setup/tasks/main.yml](../ansible/roles/k3s_setup/tasks/main.yml)):
 
 1. Создаются директории `/opt/registry/data` и `/etc/rancher/k3s`.
-2. Пишется `/etc/rancher/k3s/registries.yaml` — containerd K3s будет доверять `http://127.0.0.1:5000`.
+2. Удаляется устаревший `/etc/rancher/k3s/registries.yaml` с локальным registry mirror.
 3. Устанавливается K3s и Helm.
 4. Копируется kubeconfig в `/home/root/.kube/config`.
 5. Клонируется этот репозиторий в `/opt/apps/SESC-IT-IaC`.
@@ -100,7 +100,7 @@ https://argocd.sesc-it-team.ru
 Пароль (начальный) — получить на сервере:
 
 ```bash
-ssh root@212.113.98.188
+ssh root@10.88.0.96
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d
 ```
@@ -117,55 +117,33 @@ TLS: сертификат выпускается автоматически че
 
 ## 4. Работа с приватным registry
 
-Registry доступен:
+Registry доступен только через secure Ingress: `https://reg.<baseDomain>`.
+Прямой доступ к порту `5000` на узле отключён.
 
-- с сервера: `127.0.0.1:5000` (благодаря `hostPort`);
-- из контейнеров/CI в сети: `212.113.98.188:5000`;
-- изнутри кластера: `registry.registry.svc.cluster.local:5000`.
-
-### 4.1 На клиенте: разрешить insecure-registry
-
-Registry без TLS, поэтому Docker на клиенте нужно научить доверять ему.
-
-`/etc/docker/daemon.json` (Linux) или `~/.docker/daemon.json` (Docker Desktop):
-
-```json
-{
-  "insecure-registries": ["212.113.98.188:5000"]
-}
-```
-
-Перезапустить Docker:
-
-```bash
-sudo systemctl restart docker
-# или на macOS: перезапустить Docker Desktop
-```
-
-### 4.2 Push образа
+### 4.1 Push образа
 
 ```bash
 docker pull nginx:alpine
-docker tag nginx:alpine 212.113.98.188:5000/nginx:alpine
-docker push 212.113.98.188:5000/nginx:alpine
+docker tag nginx:alpine reg.<baseDomain>/nginx:alpine
+docker push reg.<baseDomain>/nginx:alpine
 ```
 
-### 4.3 Проверка содержимого registry
+### 4.2 Проверка содержимого registry
 
 ```bash
-curl http://212.113.98.188:5000/v2/_catalog
+curl https://reg.<baseDomain>/v2/_catalog
 # {"repositories":["nginx"]}
 
-curl http://212.113.98.188:5000/v2/nginx/tags/list
+curl https://reg.<baseDomain>/v2/nginx/tags/list
 # {"name":"nginx","tags":["alpine"]}
 ```
 
-### 4.4 Pull из k8s
+### 4.3 Pull из k8s
 
-K3s уже настроен через `/etc/rancher/k3s/registries.yaml` — можно в манифестах писать:
+В манифестах используйте домен registry:
 
 ```yaml
-image: 127.0.0.1:5000/nginx:alpine
+image: reg.<baseDomain>/nginx:alpine
 ```
 
 ---
@@ -346,7 +324,7 @@ kubectl get pods -n kube-system | grep traefik
 ### Полный рестарт всего стека
 
 ```bash
-ssh root@212.113.98.188
+ssh root@10.88.0.96
 systemctl restart k3s
 kubectl -n argocd rollout restart deploy/argocd-server
 kubectl -n registry rollout restart deploy/registry

@@ -8,7 +8,7 @@ Usage: build-and-push-images.sh [--insecure] <registry-domain>
 
 Examples:
   ./docs/build-and-push-images.sh reg.example.com
-  ./docs/build-and-push-images.sh 212.113.98.188:5000
+  ./docs/build-and-push-images.sh reg.example.com
   ./docs/build-and-push-images.sh --insecure reg.example.com
 
 Repository paths are configured directly in the projects list below.

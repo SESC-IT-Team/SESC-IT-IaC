@@ -58,20 +58,13 @@
     group: root
     mode: "0755"
 
-- name: Configure K3s containerd registries
-  ansible.builtin.copy:
+- name: Remove obsolete K3s local registry mirror
+  ansible.builtin.file:
     dest: /etc/rancher/k3s/registries.yaml
+    state: absent
     owner: root
     group: root
     mode: "0600"
-    content: |
-      mirrors:
-        "{{ registry_host }}":
-          endpoint:
-            - "http://{{ registry_host }}"
-        "{{ registry_domain }}":
-          endpoint:
-            - "http://{{ registry_host }}"
   register: registries_config
 
 - name: Install K3s when absent

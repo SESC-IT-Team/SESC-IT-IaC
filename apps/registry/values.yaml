@@ -4,7 +4,7 @@
 # Secure mode:
 #   - external access via https://reg.<baseDomain> (Traefik Ingress + LetsEncrypt)
 #   - basic auth (htpasswd) from Vault kv/apps/registry
-#   - containerd keeps pulling via hostPort mirror http://127.0.0.1:5000
+#   - registry is exposed through the in-cluster Service and Ingress
 cleanup:
   enabled: true
   protectedTagPatterns:
@@ -44,17 +44,11 @@ securityContext:
   runAsUser: 1000
   runAsGroup: 1000
 
-# Keep the host binding so containerd (registries.yaml -> 127.0.0.1:5000) can pull
-# without auth and without leaving the host.
-hostNetwork: true
-dnsPolicy: ClusterFirstWithHostNet
-
 service:
   port: 5000
 
 ports:
   containerPort: 5000
-  hostPort: 5000
 
 ingress:
   tlsSecretName: registry-tls
