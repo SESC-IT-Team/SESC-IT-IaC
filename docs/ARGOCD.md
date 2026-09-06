@@ -24,7 +24,7 @@ flowchart LR
   ArgoCD -->|sync helm| RegApp["registry (ns/registry)"]
   ArgoCD -->|sync helm| OtherApps["apps/*"]
   RegApp -->|hostPath /opt/registry/data| Data[(data)]
-  Dev["dev / CI"] -->|docker push 5000| RegApp
+  Dev["dev / CI"] -->|HTTPS push через домен Registry| RegApp
   User["user"] -->|https| Ingress["Traefik Ingress (k3s)"]
   Ingress --> ArgoCD
 ```
@@ -118,7 +118,6 @@ TLS: сертификат выпускается автоматически че
 ## 4. Работа с приватным registry
 
 Registry доступен только через secure Ingress: `https://reg.<baseDomain>`.
-Прямой доступ к порту `5000` на узле отключён.
 
 ### 4.1 Push образа
 

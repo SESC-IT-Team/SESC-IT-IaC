@@ -17,7 +17,7 @@
 | Redis | `apps/redis/` | `redis` | — (ClusterIP) | 6379 |
 | MinIO | `apps/minio/` | `minio` | `s3.<baseDomain>` / `minio.<baseDomain>` | 9000/9001 |
 | Vault UI | `apps/vault/` | `vault` | `vault.<baseDomain>` | 8200 |
-| Registry | `apps/registry/` | `registry` | `reg.<baseDomain>` | 5000 |
+| Registry | `apps/registry/` | `registry` | `https://reg.<baseDomain>` | HTTPS через Ingress |
 | Authentik | `apps/authentik/` | `authentik` | `auth.<baseDomain>` | 9000 |
 | Lyceum Auth | `apps/lyceum-auth/` | `lyceum-auth` | `users.<baseDomain>` | 8000 |
 
@@ -117,7 +117,7 @@ argocd.<baseDomain>
 
 Registry доступен по `https://reg.<baseDomain>` (внутренний CA через cert-manager). Установите `sesc-internal-ca.crt` на Docker-клиент, прежде чем выполнять HTTPS push/pull. Basic-auth (htpasswd) **выключен** (`auth.enabled: false` в `apps/registry/values.yaml`); чтобы включить — внести `HTPASSWD` в Vault `apps/registry` и переключить флаг в `true`.
 
-Containerd K3s тянет образы через Ingress `https://reg.<baseDomain>`; прямой доступ к порту `5000` на узле отключён. Убедитесь, что внутренний CA установлен в доверенное хранилище узла.
+Containerd K3s тянет образы через HTTPS Ingress `https://reg.<baseDomain>`. Убедитесь, что внутренний CA установлен в доверенное хранилище узла.
 
 Локальная сборка и push:
 
