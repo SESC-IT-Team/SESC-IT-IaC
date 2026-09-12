@@ -8,12 +8,16 @@ global:
 
 image:
   repository: spravki-frontend
-  tag: "22416be"
+  tag: "67a7051"
   pullPolicy: IfNotPresent
 
 hostPrefix: spravki
 apiHostPrefix: spravki
 tlsSecretName: spravki-frontend-tls
+
+auth:
+  hostPrefix: auth
+  applicationSlug: spravki-app
 
 port: 80
 

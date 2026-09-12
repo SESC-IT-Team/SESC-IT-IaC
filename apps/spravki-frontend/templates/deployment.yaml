@@ -25,6 +25,8 @@ spec:
           env:
             - name: VITE_API_BASE_URL
               value: {{ include "cluster.apiUrl" (dict "ctx" . "prefix" .Values.apiHostPrefix) | quote }}
+            - name: VITE_AUTH_END_SESSION_URL
+              value: {{ printf "%s/application/o/%s/end-session/" (include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix) | trimSuffix "/") .Values.auth.applicationSlug | quote }}
           volumeMounts:
             {{- include "cluster.internalCAMount" . | nindent 12 }}
           readinessProbe:
