@@ -1,0 +1,40 @@
+version: 1
+metadata:
+  name: "Local Test App"
+entries:
+  - identifiers:
+      name: "local-test-app-provider"
+    model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      authorization_flow: !Find [authentik_flows.flow, [slug, custom-inner-apps-auth-flow]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      client_type: "public"
+      client_id: !Env LOCAL_TEST_APP_CLIENT_ID
+
+      sub_mode: "user_uuid"
+      issuer_mode: "per_provider"
+
+      redirect_uris:
+        - url: !Env LOCAL_TEST_APP_BACKEND_REDIRECT_URI
+          matching_mode: "strict"
+        - url: !Env LOCAL_TEST_APP_FRONTEND_REDIRECT_URI
+          matching_mode: "strict"
+
+      signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
+
+      grant_types:
+        - "authorization_code"
+        - "refresh_token"
+
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "openid"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "custom-offline_access-mapping"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [name, "custom-profile-mapping"]]
+
+  - identifiers:
+      slug: "local-test-app"
+    model: authentik_core.application
+    attrs:
+      name: "Local Development Test App"
+      provider: !Find [authentik_providers_oauth2.oauth2provider, [name, "local-test-app-provider"]]

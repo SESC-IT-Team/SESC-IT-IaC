@@ -32,6 +32,8 @@ authentik:
       clientId: auth-admin-client-id
     openfga:
       clientId: openfga-client-id
+    localTest:
+      clientId: local-test-client-id
   resources:
     server:
       requests:

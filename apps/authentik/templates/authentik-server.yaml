@@ -68,6 +68,15 @@ spec:
             - name: OPENFGA_CLIENT_ID
               value: {{ .Values.authentik.clients.openfga.clientId | quote }}
 
+            - name: LOCAL_TEST_APP_CLIENT_ID
+              value: {{ .Values.authentik.clients.localTest.clientId | quote }}
+
+            - name: LOCAL_TEST_APP_BACKEND_REDIRECT_URI
+              value: "http://localhost:8000/auth/callback"
+
+            - name: LOCAL_TEST_APP_FRONTEND_REDIRECT_URI
+              value: "http://localhost:5173/auth/callback"
+
             - name: AUTHENTIK_ERROR_REPORTING__ENABLED
               value: {{ .Values.authentik.errorReportingEnabled | quote }}
 
