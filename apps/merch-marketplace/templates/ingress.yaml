@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: merch-storefront
+  namespace: {{ .Values.namespace }}
+  annotations:
+    cert-manager.io/cluster-issuer: sesc-internal-issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+      secretName: {{ .Values.tlsSecretName }}
+  rules:
+    - host: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: merch-storefront
+                port:
+                  number: {{ .Values.storefront.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: merch-backend
+  namespace: {{ .Values.namespace }}
+  annotations:
+    cert-manager.io/cluster-issuer: sesc-internal-issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ include "cluster.apiFqdn" (dict "ctx" . "prefix" .Values.apiHostPrefix) | quote }}
+      secretName: {{ .Values.apiTlsSecretName }}
+  rules:
+    - host: {{ include "cluster.apiFqdn" (dict "ctx" . "prefix" .Values.apiHostPrefix) | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: merch-backend
+                port:
+                  number: {{ .Values.backend.port }}

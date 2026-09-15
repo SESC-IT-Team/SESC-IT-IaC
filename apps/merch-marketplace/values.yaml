@@ -1,0 +1,54 @@
+namespace: merch
+
+global:
+  internalCA:
+    enabled: true
+    configMapName: sesc-internal-ca
+    mountPath: /etc/ssl/certs/sesc-internal-ca.crt
+
+backend:
+  image:
+    repository: merch-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 9000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+storefront:
+  image:
+    repository: merch-storefront
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 8000
+  publishableKey: ""
+  defaultRegion: ru
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+hostPrefix: merch
+apiHostPrefix: merch
+tlsSecretName: merch-storefront-tls
+apiTlsSecretName: merch-backend-tls
+
+postgres:
+  image: postgres:16-alpine
+  database: medusa
+  user: medusa
+  storage:
+    size: 5Gi
+    storageClass: local-path
+
+redis:
+  image: redis:7-alpine
+  storage:
+    size: 2Gi
+    storageClass: local-path

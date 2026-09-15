@@ -20,6 +20,7 @@
 | Registry | `apps/registry/` | `registry` | `https://reg.<baseDomain>` | HTTPS через Ingress |
 | Authentik | `apps/authentik/` | `authentik` | `auth.<baseDomain>` | 9000 |
 | Lyceum Auth | `apps/lyceum-auth/` | `lyceum-auth` | `users.<baseDomain>` | 8000 |
+| Merch Marketplace | `apps/merch-marketplace/` | `merch` | `merch.<baseDomain>` / `api.merch.<baseDomain>` | 8000/9000 |
 
 ArgoCD Applications: `argocd/apps/*.yaml`, sync-wave `1` — инфраструктура, `2` — приложения.
 
@@ -109,6 +110,8 @@ reg.<baseDomain>
 auth.<baseDomain>
 users.<baseDomain>
 argocd.<baseDomain>
+merch.<baseDomain>
+api.merch.<baseDomain>
 ```
 
 (`api.spravki.<baseDomain>` — два уровня, одинокий wildcard `*.<baseDomain>` его не покрывает.)

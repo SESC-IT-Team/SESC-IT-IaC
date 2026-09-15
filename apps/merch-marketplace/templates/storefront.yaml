@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: merch-storefront
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: merch-storefront
+  ports:
+    - name: http
+      port: {{ .Values.storefront.port }}
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: merch-storefront
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: merch-storefront
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: merch-storefront
+  template:
+    metadata:
+      labels:
+        app: merch-storefront
+    spec:
+      containers:
+        - name: merch-storefront
+          image: {{ include "merch.image" (dict "ctx" . "image" .Values.storefront.image) | quote }}
+          imagePullPolicy: {{ .Values.storefront.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.storefront.port }}
+          env:
+            {{- include "cluster.internalCAEnv" . | nindent 12 }}
+            - name: NODE_ENV
+              value: production
+            - name: MEDUSA_BACKEND_URL
+              value: {{ printf "http://merch-backend:%d" (int .Values.backend.port) | quote }}
+            - name: NEXT_PUBLIC_MEDUSA_BACKEND_URL
+              value: {{ include "cluster.apiUrl" (dict "ctx" . "prefix" .Values.apiHostPrefix) | quote }}
+            - name: NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+              value: {{ .Values.storefront.publishableKey | quote }}
+            - name: NEXT_PUBLIC_DEFAULT_REGION
+              value: {{ .Values.storefront.defaultRegion | quote }}
+            - name: NEXT_PUBLIC_BASE_URL
+              value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+          volumeMounts:
+            {{- include "cluster.internalCAMount" . | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+          resources:
+            {{- toYaml .Values.storefront.resources | nindent 12 }}
+      volumes:
+        {{- include "cluster.internalCAVolume" . | nindent 8 }}
