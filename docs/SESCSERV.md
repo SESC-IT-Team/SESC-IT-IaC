@@ -43,6 +43,9 @@ A-записи на `129.101.95.254`: `*`, `*.spravki`, `*.support`, `*.users`
 8. `buckets.sh` — бакеты MinIO `geometry-dash` (справки) и `order-photos` (техподдержка).
 9. `status.sh` / `smoke.sh [public]` — сводка и проверка эндпоинтов.
 
+10. `create-user.sh` — создать пользователей через lyceum-auth (Authentik + доменные данные/роли). Вход один раз
+    в браузере под `admin`; пользователей, созданных только в UI Authentik, справки и техподдержка не видят.
+
 **`/root/vault-init.json` (root-токен и recovery-ключи) надо сохранить в надёжном месте и удалить с сервера.**
 
 ## Auto-unseal (transit, как в GitOps-IaC)
