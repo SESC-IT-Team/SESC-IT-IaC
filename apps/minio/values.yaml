@@ -1,6 +1,13 @@
 namespace: minio
 
-image: quay.io/minio/minio:latest
+# Upstream MinIO no longer publishes images (quay.io/minio/minio and
+# docker.io/minio/minio deny anonymous pulls); use the frozen Bitnami build.
+image: bitnamilegacy/minio:2025.7.23-debian-12-r5
+# Bypass the Bitnami entrypoint so `args` go straight to the minio binary.
+command:
+  - minio
+podSecurityContext:
+  fsGroup: 1001
 
 apiHostPrefix: s3
 consoleHostPrefix: minio

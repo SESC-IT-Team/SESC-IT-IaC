@@ -16,10 +16,18 @@ spec:
       labels:
         app: minio
     spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: minio
           image: {{ .Values.image | quote }}
           imagePullPolicy: IfNotPresent
+          {{- with .Values.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           args:
             - server
             - /data
