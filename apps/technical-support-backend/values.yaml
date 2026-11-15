@@ -8,7 +8,8 @@ global:
 
 image:
   repository: technical-support-backend
-  tag: "7463090"
+  # -cfgfix: built with settings = Settings() (see build notes in docs/SESCSERV.md).
+  tag: "7463090-cfgfix"
   pullPolicy: IfNotPresent
 
 hostPrefix: support
