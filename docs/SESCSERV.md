@@ -64,8 +64,4 @@ master key через unsealer — ручной unseal после перезаг
 - MinIO: `bitnamilegacy/minio` — официальные образы MinIO больше не скачиваются анонимно.
 - technical-support-backend: в чарт добавлены `CLIENT_ID/SECRET`, `LOGIN_REDIRECT_URI`, `ROUTER_PATH`,
   `ALLOWED_ISSUERS`, cookie и S3-переменные — без них образ не стартует.
-- Образ `technical-support-backend:7463090-cfgfix` собран с патчем `src/config.py`:
-  upstream создаёт `Settings(postgres_host='', …)`, и явные аргументы перекрывают переменные окружения
-  (БД/S3 всегда пустые). Патч заменяет это на `Settings()`. Правильное исправление — в репозитории
-  Technical-Support-Backend; после него тег можно вернуть на обычный SHA.
 - Registry с htpasswd; k3s тянет образы с учёткой из `/etc/rancher/k3s/registries.yaml` (пишет ansible).

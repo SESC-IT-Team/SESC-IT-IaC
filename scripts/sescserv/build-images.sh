@@ -33,19 +33,7 @@ for line in $APPS; do
   tag=$(awk '/^image:/ {f=1} f && /tag:/ {gsub(/"/,"",$2); print $2; exit}' "$IAC/$values")
   dir="$SRC/$repo"
   [ -d "$dir/.git" ] || git clone -q "https://github.com/SESC-IT-Team/$repo.git" "$dir"
-  commit=${tag%%-*}   # "<sha>-<patch>" tags build <sha> plus a local patch
-  git -C "$dir" fetch -q origin && git -C "$dir" checkout -q --force "$commit" || { echo "$image: checkout $commit failed"; fail=1; continue; }
-  if [ "$image" = technical-support-backend ] && [ "$tag" != "$commit" ]; then
-    # Upstream src/config.py builds Settings(postgres_host='', ...): init kwargs
-    # override env vars, so the DB/S3 settings are always empty. Read env instead.
-    python3 - "$dir/src/config.py" <<'PY'
-import re, sys
-p = sys.argv[1]; s = open(p).read()
-s = re.sub(r"\nsettings = Settings\([^)]*\)", "\nsettings = Settings()", s, flags=re.S)
-open(p, "w").write(s)
-PY
-    grep -n "^settings = " "$dir/src/config.py"
-  fi
+  git -C "$dir" fetch -q origin && git -C "$dir" checkout -q --force "$tag" || { echo "$image: checkout $tag failed"; fail=1; continue; }
   if docker build -q -t "$REG/$image:$tag" "$dir" > "/root/build-$image.log" 2>&1; then
     echo "$image:$tag built"
     if [ "${1:-}" = push ]; then
