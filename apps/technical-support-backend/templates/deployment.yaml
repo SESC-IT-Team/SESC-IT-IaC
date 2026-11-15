@@ -54,6 +54,17 @@ spec:
               value: "false"
             - name: SEND_ACCESS_TOKEN_AS_COOKIE
               value: "true"
+            - name: ROUTER_PATH
+              value: {{ .Values.auth.routerPath | quote }}
+            - name: CLIENT_ID
+              value: {{ .Values.auth.clientId | quote }}
+            - name: CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: technical-support-backend-secrets
+                  key: CLIENT_SECRET
+            - name: LOGIN_REDIRECT_URI
+              value: {{ printf "%s/auth/callback" (include "cluster.apiUrl" (dict "ctx" . "prefix" .Values.hostPrefix)) | quote }}
           envFrom:
             - secretRef:
                 name: technical-support-backend-secrets

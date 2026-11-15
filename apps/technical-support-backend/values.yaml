@@ -29,6 +29,9 @@ postgres:
 auth:
   hostPrefix: auth
   applicationSlug: technical-support-app
+  # Must match authentik.clients.technicalSupport.clientId.
+  clientId: technical-support-client-id
+  routerPath: ""
   allowedApplicationSlugs:
     - technical-support-app
 
