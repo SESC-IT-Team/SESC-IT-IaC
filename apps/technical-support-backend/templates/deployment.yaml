@@ -56,6 +56,31 @@ spec:
               value: "true"
             - name: ROUTER_PATH
               value: {{ .Values.auth.routerPath | quote }}
+            - name: ALLOWED_ISSUERS
+              value: {{ list (printf "%s/application/o/%s/" (include "cluster.url" (dict "ctx" . "prefix" .Values.auth.hostPrefix)) .Values.auth.applicationSlug) | toJson | quote }}
+            - name: DOMAIN
+              value: {{ include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+            - name: API_DOMAIN
+              value: {{ include "cluster.apiFqdn" (dict "ctx" . "prefix" .Values.hostPrefix) | quote }}
+            - name: COOKIE_DOMAIN
+              value: {{ printf ".%s" (include "cluster.fqdn" (dict "ctx" . "prefix" .Values.hostPrefix)) | quote }}
+            - name: COOKIE_SECURE
+              value: "true"
+            - name: COOKIE_SAMESITE
+              value: "lax"
+            - name: S3_ENDPOINT_URL
+              value: {{ include "cluster.url" (dict "ctx" . "prefix" .Values.s3.hostPrefix) | quote }}
+            - name: S3_ACCESS_KEY
+              value: {{ .Values.s3.accessKey | quote }}
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: technical-support-backend-secrets
+                  key: MINIO_ROOT_PASSWORD
+            - name: S3_BUCKET_NAME
+              value: {{ .Values.s3.bucketName | quote }}
+            - name: S3_REGION_NAME
+              value: {{ .Values.s3.region | quote }}
             - name: CLIENT_ID
               value: {{ .Values.auth.clientId | quote }}
             - name: CLIENT_SECRET

@@ -26,6 +26,14 @@ postgres:
     size: 5Gi
     storageClass: local-path
 
+# Order photos in the cluster MinIO (public endpoint so presigned URLs work
+# in the browser). The bucket must exist.
+s3:
+  hostPrefix: s3
+  accessKey: minioadmin
+  bucketName: order-photos
+  region: us-east-1
+
 auth:
   hostPrefix: auth
   applicationSlug: technical-support-app
