@@ -8,6 +8,8 @@
   ansible.builtin.set_fact:
     registry_domain: "reg.{{ cluster_config.global.baseDomain }}"
     argocd_domain: "argocd.{{ cluster_config.global.baseDomain }}"
+    tls_issuer: "{{ cluster_config.global.tlsIssuer | default('sesc-internal-issuer') }}"
+    letsencrypt_email: "{{ cluster_config.global.acmeEmail }}"
 
 - name: Install base packages on Debian/Ubuntu
   ansible.builtin.apt:
@@ -60,13 +62,20 @@
     group: root
     mode: "0755"
 
-- name: Remove obsolete K3s local registry mirror
-  ansible.builtin.file:
+- name: Configure K3s pull credentials for the private registry
+  ansible.builtin.copy:
     dest: /etc/rancher/k3s/registries.yaml
-    state: absent
     owner: root
     group: root
     mode: "0600"
+    content: |
+      configs:
+        "{{ registry_domain }}":
+          auth:
+            username: "{{ registry_username }}"
+            password: "{{ registry_password }}"
+  when: registry_password | length > 0
+  no_log: true
   register: registries_config
 
 - name: Install K3s when absent
@@ -121,7 +130,7 @@
 
 - name: Create kubeconfig directory for deploy user
   ansible.builtin.file:
-    path: /home/root/.kube
+    path: /root/.kube
     state: directory
     owner: root
     group: root
@@ -130,7 +139,7 @@
 - name: Copy K3s kubeconfig for deploy user
   ansible.builtin.copy:
     src: /etc/rancher/k3s/k3s.yaml
-    dest: /home/root/.kube/config
+    dest: /root/.kube/config
     remote_src: true
     owner: root
     group: root
@@ -322,6 +331,9 @@
       server:
         ingress:
           hostname: "{{ argocd_domain }}"
+          annotations:
+            traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+            cert-manager.io/cluster-issuer: "{{ tls_issuer }}"
       configs:
         cm:
           url: "https://{{ argocd_domain }}"

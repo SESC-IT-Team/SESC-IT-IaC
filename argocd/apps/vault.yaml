@@ -12,8 +12,13 @@ spec:
 
   source:
     repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
-    targetRevision: HEAD
+    targetRevision: env/sescserv
     path: apps/vault
+    helm:
+      valueFiles:
+        - values.yaml
+        # Shared cluster settings (global.baseDomain, tlsIssuer) — one place.
+        - ../../charts/cluster/values.yaml
 
   destination:
     server: https://kubernetes.default.svc

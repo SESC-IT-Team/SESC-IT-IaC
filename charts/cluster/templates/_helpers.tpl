@@ -11,6 +11,18 @@
 {{- required "global.baseDomain must be set in charts/cluster/values.yaml" $domain -}}
 {{- end }}
 
+{{- define "cluster.tlsIssuer" -}}
+{{- $fromGlobal := "" -}}
+{{- if and .Values.global .Values.global.tlsIssuer -}}
+{{- $fromGlobal = .Values.global.tlsIssuer -}}
+{{- end -}}
+{{- $fromSubchart := "" -}}
+{{- if and (index .Values "cluster") (index .Values "cluster" "global") -}}
+{{- $fromSubchart = index .Values "cluster" "global" "tlsIssuer" | default "" -}}
+{{- end -}}
+{{- default "sesc-internal-issuer" (default $fromSubchart $fromGlobal) -}}
+{{- end }}
+
 {{- define "cluster.registry" -}}
 {{- printf "reg.%s" (include "cluster.baseDomain" .) -}}
 {{- end }}

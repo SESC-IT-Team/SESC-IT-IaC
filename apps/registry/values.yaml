@@ -20,9 +20,10 @@ cleanup:
   schedule: "15 03 * * *"
   garbageCollectSchedule: "30 03 * * *"
   registryURL: http://registry:5000
-  kubectlImage: bitnami/kubectl:1.31.4
+  kubectlImage: bitnamilegacy/kubectl:1.31.4
   retentionImage: python:3.12-alpine
-  existingSecret: ""
+  # Created by templates/external-secret.yaml when auth.enabled is true.
+  existingSecret: registry-htpasswd
   usernameKey: username
   passwordKey: password
   resources:
@@ -53,9 +54,11 @@ ports:
 ingress:
   tlsSecretName: registry-tls
 
-# Enable htpasswd auth (requires kv/apps/registry:HTPASSWD in Vault).
+# htpasswd auth: the registry is reachable from the internet.
+# Requires kv/apps/registry: HTPASSWD, REGISTRY_USERNAME, REGISTRY_PASSWORD.
+# Nodes pull with the same credentials via /etc/rancher/k3s/registries.yaml.
 auth:
-  enabled: false
+  enabled: true
   realm: "SESC-IT Registry"
 
 storage:

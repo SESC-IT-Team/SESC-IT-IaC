@@ -57,9 +57,10 @@ hostPrefix: users
 authentikHostPrefix: auth
 
 certificate:
-  enabled: true
+  # The Ingress annotation (cluster.tlsIssuer) already makes cert-manager issue
+  # this secret; a second explicit Certificate would double the ACME orders.
+  enabled: false
   issuerRef:
-    name: sesc-internal-issuer
     kind: ClusterIssuer
     group: cert-manager.io
   secretName: lyceum-auth-tls

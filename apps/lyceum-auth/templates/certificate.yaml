@@ -8,7 +8,7 @@ metadata:
 spec:
   secretName: {{ .Values.certificate.secretName }}
   issuerRef:
-    name: {{ .Values.certificate.issuerRef.name }}
+    name: {{ include "cluster.tlsIssuer" $ }}
     kind: {{ .Values.certificate.issuerRef.kind }}
     group: {{ .Values.certificate.issuerRef.group | default "cert-manager.io" }}
   dnsNames:

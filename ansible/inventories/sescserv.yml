@@ -1,0 +1,12 @@
+---
+# Single-node cluster on sescserv.ru (domain: charts/cluster/values.yaml).
+# The playbook runs on the server itself from a clone of branch env/sescserv:
+#   cd /opt/apps/SESC-IT-IaC/ansible
+#   VAULT_ROOT_TOKEN=... REGISTRY_PASSWORD=... \
+#     ansible-playbook -i inventories/sescserv.yml playbooks/k3s-server.yml
+all:
+  hosts:
+    server:
+      ansible_host: 127.0.0.1
+      ansible_connection: local
+      ansible_python_interpreter: /usr/bin/python3

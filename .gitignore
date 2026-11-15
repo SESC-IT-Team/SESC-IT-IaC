@@ -39,3 +39,6 @@ logs/
 certs/
 
 **/charts/*.tgz
+# Helm dependency archives are rebuilt from charts/cluster by ArgoCD;
+# vendored copies go stale and pin an old baseDomain.
+apps/*/charts/*.tgz

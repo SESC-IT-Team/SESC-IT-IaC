@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
-    targetRevision: HEAD
+    targetRevision: env/sescserv
     path: argocd/resources/internal-ca-bundle
   destination:
     server: https://kubernetes.default.svc

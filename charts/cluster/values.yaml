@@ -1,7 +1,14 @@
-# Single source of truth for the cluster DNS zone.
-# Ansible (k3s_setup) and every app chart read global.baseDomain from here.
+# Single source of truth for the cluster DNS zone and TLS settings.
+# Read by ansible (k3s_setup) and passed to every ArgoCD Application as a
+# value file, so changing the domain here re-renders the whole cluster.
 global:
-  baseDomain: sit.lyceum.usu.ru
+  # <globalDomain>: every service is published as <prefix>.<baseDomain>.
+  baseDomain: sescserv.ru
+  # Contact address for the Let's Encrypt ACME account.
+  acmeEmail: it@sescserv.ru
+  # ClusterIssuer used by every Ingress: letsencrypt-prod (public certs) or
+  # sesc-internal-issuer (self-signed internal CA).
+  tlsIssuer: letsencrypt-prod
   internalCA:
     enabled: true
     configMapName: sesc-internal-ca

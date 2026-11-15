@@ -4,7 +4,7 @@ kind: Ingress
 metadata:
   name: {{ include "lyceum-auth.fullname" . }}
   annotations:
-    cert-manager.io/cluster-issuer: {{ .Values.certificate.issuerRef.name }}
+    cert-manager.io/cluster-issuer: {{ include "cluster.tlsIssuer" $ | quote }}
     traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
   labels:
     {{- include "lyceum-auth.labels" . | nindent 4 }}
