@@ -46,6 +46,9 @@ spec:
               value: {{ .Values.s3.port | quote }}
             - name: S3_BUCKET_NAME
               value: {{ .Values.s3.bucketName | quote }}
+            # The worker's Settings reads BUCKET_NAME (required).
+            - name: BUCKET_NAME
+              value: {{ .Values.s3.bucketName | quote }}
             - name: MINIO_ROOT_USER
               value: {{ .Values.minio.user | quote }}
           envFrom:
