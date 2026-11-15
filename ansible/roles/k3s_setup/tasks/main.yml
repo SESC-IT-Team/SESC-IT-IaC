@@ -402,15 +402,15 @@
   changed_when: false
   no_log: true
 
+# No token_reviewer_jwt: Vault then re-reads its own (projected, pod-bound)
+# ServiceAccount token. Pinning the token here breaks Kubernetes auth (403 for
+# External Secrets) as soon as vault-0 is recreated.
 - name: Configure Vault Kubernetes auth
   ansible.builtin.shell: |
     set -o pipefail
-    reviewer_jwt=$(kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} -- \
-      cat /var/run/secrets/kubernetes.io/serviceaccount/token)
     kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml -n {{ vault_namespace }} exec {{ vault_pod }} -- \
-      env VAULT_TOKEN="$VAULT_ROOT_TOKEN" REVIEWER_JWT="$reviewer_jwt" \
+      env VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
       vault write auth/{{ vault_kubernetes_auth_mount }}/config \
-      token_reviewer_jwt="$reviewer_jwt" \
       kubernetes_host="https://kubernetes.default.svc:443" \
       kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
   args:
