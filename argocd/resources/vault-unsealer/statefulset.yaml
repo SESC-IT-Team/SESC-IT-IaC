@@ -1,0 +1,68 @@
+# StatefulSet for vault-unsealer.
+#
+# Uses file storage with a 1Gi PVC (local-path) — survives reboots.
+# The entrypoint script (from ConfigMap) handles auto-init and auto-unseal.
+# sync-wave -3 ensures this deploys before the main Vault (sync-wave -2).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vault-unsealer
+  namespace: vault
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  serviceName: vault-unsealer
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vault-unsealer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vault-unsealer
+    spec:
+      containers:
+        - name: vault
+          image: hashicorp/vault:2.0.2
+          command: ["/bin/sh", "/vault/config/entrypoint.sh"]
+          ports:
+            - containerPort: 8200
+              name: api
+          env:
+            - name: VAULT_ADDR
+              value: "http://127.0.0.1:8200"
+          volumeMounts:
+            - name: config
+              mountPath: /vault/config
+            - name: data
+              mountPath: /vault/data
+          readinessProbe:
+            httpGet:
+              path: /v1/sys/health?standbyok=true
+              port: 8200
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: config
+          configMap:
+            name: vault-unsealer-config
+            defaultMode: 0755
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 1Gi

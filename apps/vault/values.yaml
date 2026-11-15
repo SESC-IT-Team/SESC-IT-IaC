@@ -33,6 +33,16 @@ vault:
             node_id = "vault-0"
           }
 
+          # Transit auto-unseal via vault-unsealer (argocd/apps/vault-unsealer.yaml).
+          # TRANSIT_ADDR / TRANSIT_TOKEN are substituted from env at pod start.
+          seal "transit" {
+            address          = "TRANSIT_ADDR"
+            token            = "TRANSIT_TOKEN"
+            key_name         = "autounseal"
+            mount_path       = "transit/"
+            disable_renewal  = "false"
+          }
+
           service_registration "kubernetes" {}
 
     dataStorage:
@@ -44,6 +54,16 @@ vault:
       enabled: true
       size: 5Gi
       storageClass: local-path
+
+    extraEnvironmentVars:
+      TRANSIT_ADDR: "http://vault-unsealer.vault.svc.cluster.local:8200"
+
+    # Transit client token for the seal (Secret created by
+    # scripts/sescserv/vault-transit.sh; the pod cannot start without it).
+    extraSecretEnvironmentVars:
+      - envName: TRANSIT_TOKEN
+        secretName: vault-transit-token
+        secretKey: token
 
     readinessProbe:
       enabled: true

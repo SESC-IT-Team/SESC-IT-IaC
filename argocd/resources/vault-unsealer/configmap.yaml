@@ -1,0 +1,97 @@
+# ConfigMap for vault-unsealer: HCL config + entrypoint script.
+#
+# The entrypoint script handles:
+#   - First boot (empty PVC): vault operator init → unseal → transit enable → key create
+#   - Subsequent boots:        vault operator unseal (keys read from PVC)
+#
+# Keys are stored in /vault/data/init.json on the PVC (1 share, threshold 1).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-unsealer-config
+  namespace: vault
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+data:
+  vault.hcl: |
+    ui = false
+
+    listener "tcp" {
+      tls_disable = 1
+      address     = "[::]:8200"
+    }
+
+    storage "file" {
+      path = "/vault/data"
+    }
+
+    disable_mlock = true
+
+  entrypoint.sh: |
+    #!/bin/sh
+    set -e
+
+    VAULT_ADDR="http://127.0.0.1:8200"
+    INIT_FILE="/vault/data/init.json"
+
+    # Helper: extract JSON field without jq (vault image has no jq)
+    # Handles both single-line ("field": "value") and multi-line array
+    # ("field": [\n  "value"\n]) formats.
+    json_field() {
+      # $1 = field name, reads from stdin
+      awk -F"\"" "
+        /\"$1\"/ {
+          # Try same-line value (field 4)
+          if (\$4 != \"\") { print \$4; exit }
+          # Otherwise look on next line for first quoted value
+          found = 1; next
+        }
+        found && /\"/ { print \$2; exit }
+      "
+    }
+
+    # Start vault server in background
+    vault server -config=/vault/config/vault.hcl &
+    VAULT_PID=$!
+
+    # Wait for vault API to respond (exit code 0 = unsealed, 2 = sealed,
+    # non-zero = not ready yet). We just need the API up, not unsealed.
+    echo "[entrypoint] Waiting for vault to start..."
+    until vault status 2>/dev/null | grep -q "Initialized"; do
+      sleep 1
+    done
+
+    if [ ! -f "$INIT_FILE" ]; then
+      # First boot: initialize and unseal
+      echo "[entrypoint] First boot — initializing vault..."
+      vault operator init -key-shares=1 -key-threshold=1 -format=json > "$INIT_FILE"
+
+      UNSEAL_KEY=$(json_field unseal_keys_b64 < "$INIT_FILE")
+      ROOT_TOKEN=$(json_field root_token < "$INIT_FILE")
+
+      echo "[entrypoint] Unsealing..."
+      vault operator unseal "$UNSEAL_KEY"
+    else
+      # Subsequent boots: read keys and unseal
+      echo "[entrypoint] Subsequent boot — unsealing from $INIT_FILE..."
+      UNSEAL_KEY=$(json_field unseal_keys_b64 < "$INIT_FILE")
+      ROOT_TOKEN=$(json_field root_token < "$INIT_FILE")
+      vault operator unseal "$UNSEAL_KEY"
+      echo "[entrypoint] Unsealed."
+    fi
+
+    # Ensure transit engine and key exist (idempotent — handles first-boot
+    # crash recovery where init succeeded but transit setup did not).
+    export VAULT_TOKEN="$ROOT_TOKEN"
+    if ! vault secrets list -format=json 2>/dev/null | grep -q '"transit/"'; then
+      echo "[entrypoint] Enabling transit secrets engine..."
+      vault secrets enable transit
+    fi
+    if ! vault read transit/keys/autounseal 2>/dev/null; then
+      echo "[entrypoint] Creating transit key 'autounseal'..."
+      vault write -f transit/keys/autounseal
+    fi
+
+    echo "[entrypoint] Boot complete."
+    # Bring vault server to foreground
+    wait "$VAULT_PID"

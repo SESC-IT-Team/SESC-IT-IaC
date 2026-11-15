@@ -1,0 +1,29 @@
+# ArgoCD Application: vault-unsealer (transit auto-unseal helper, as in GitOps-IaC).
+# sync-wave -3 deploys before the main Vault (sync-wave -2). See docs/SESCSERV.md.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-unsealer
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/SESC-IT-Team/SESC-IT-IaC.git
+    targetRevision: env/sescserv
+    path: argocd/resources/vault-unsealer
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+
+  syncPolicy:
+    automated:
+      # Never prune: losing the unsealer's PVC means the main Vault cannot unseal.
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

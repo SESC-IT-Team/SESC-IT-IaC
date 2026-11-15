@@ -1,0 +1,18 @@
+# ClusterIP Service for vault-unsealer.
+# Main Vault connects to http://vault-unsealer.vault.svc.cluster.local:8200
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-unsealer
+  namespace: vault
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vault-unsealer
+  ports:
+    - name: api
+      port: 8200
+      targetPort: 8200
+      protocol: TCP
