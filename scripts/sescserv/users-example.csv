@@ -1,0 +1,6 @@
+last_name,first_name,middle_name,login,password,roles,gender,grade,letter,graduation_year,birthday,lives_in_dormitory,departments,children
+Иванов,Иван,Иванович,ivanov,,student,male,10,А,2028,2010-05-12,true,,
+Иванова,Мария,Петровна,ivanova.m,,parent,female,,,,,,,ivanov
+Петрова,Анна,Сергеевна,petrova.a,,staff,female,,,,,,educational_department:admin,
+Сидоров,Олег,,sidorov.o,,staff,male,,,,,,competitive_selection_department:admin;dormitory:admin,
+Кузнецов,Павел,,kuznetsov.p,,teacher,male,,,,,,it_department:worker,
